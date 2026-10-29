@@ -1,0 +1,3962 @@
+/workspaces/default/code
+
+--- files ---
+./.figma/README.md
+./.git/COMMIT_EDITMSG
+./.git/FETCH_HEAD
+./.git/HEAD
+./.git/config
+./.git/description
+./.git/index
+./.gitattributes
+./.gitignore
+./.mise.toml
+./AGENTS.md
+./CLAUDE.md
+./index.html
+./node_modules/.modules.yaml
+./node_modules/.pnpm-workspace-state-v1.json
+./package.json
+./pnpm-lock.yaml
+./public/favicon.svg
+./src/App.tsx
+./src/index.css
+./src/main.tsx
+./src/vite-env.d.ts
+./tsconfig.json
+./vite.config.ts
+
+--- package ---
+{
+  "name": "figma-make-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "format": "oxfmt"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "oxfmt": "^0.2.0",
+    "typescript": "^5.7.0",
+    "vite": "^8.0.5"
+  }
+}
+
+--- instructions ---
+--- ../code/.figma/README.md
+# Figma Make and Code Layers files
+
+This directory contains scripts, configuration, and generated files that Figma
+Make and Code Layers use to install dependencies, run your app, build previews,
+and publish your site.
+
+Commit this directory to your repository so Figma Make and Code Layers can reuse
+it the next time this repository is imported and start your preview server right
+away, without setting up the project from scratch.
+
+To learn more about these files, see
+[Use Git with Figma Make and code layers](https://help.figma.com/hc/en-us/articles/44220165255063-Use-Git-with-Figma-Make-and-code-layers#h_01M5X47F86RN1RW0F8565KZHB8)
+in the Figma Help Center.
+--- ../code/AGENTS.md
+# figma-make-app
+
+React + Vite + Tailwind CSS project running inside Figma Make.
+
+## Development Server
+
+A Vite development server is **already running** on `$PORT` (default 8443). You don't need to start it manually.
+
+- Preview URL: The user can access the running app through the preview panel
+- Hot reload: Changes to source files are reflected immediately
+
+## Project Structure
+
+This is the canonical project structure. Start with task-relevant files below. Only follow imports or inspect other files when required, when a documented path is missing, or when the repository contradicts this guide.
+
+- `src/main.tsx` - React entrypoint; imports `src/index.css` and mounts `src/App.tsx` into the `#root` element
+- `src/App.tsx` - Primary application component and the usual starting point for UI work
+- `src/index.css` - Global CSS entrypoint and Tailwind CSS v4 import
+- `index.html` - Vite HTML shell containing the `#root` element and loading `src/main.tsx`
+- `package.json` - Project dependencies and the Vite build, development, preview, and formatting scripts
+- `vite.config.ts` - Vite configuration with React, Tailwind CSS v4, and Figma Make plugins plus the `@` alias for `src`
+- `.mise.toml` - Toolchain versions for Node.js and pnpm
+
+## Dependencies
+
+- Runtime: React 19 and React DOM 19
+- Styling: Tailwind CSS v4 with the `@tailwindcss/vite` plugin
+- Build tooling: Vite 8, TypeScript 5.7, and `@vitejs/plugin-react`
+- Formatting: oxfmt
+
+## Styling
+
+This project uses **Tailwind CSS v4** through the `@tailwindcss/vite` plugin configured in `vite.config.ts`. `src/index.css` imports Tailwind with `@import 'tailwindcss';`. Use Tailwind utility classes directly in JSX and put global CSS or Tailwind v4 theme customization in `src/index.css`. This scaffold does not need a Tailwind config file or PostCSS config.
+
+`src/main.tsx` imports `src/index.css`, so global font wiring belongs in `src/index.css`. Keep CSS `@import` statements first, then add any `@font-face` rules and font-family defaults there.
+
+Tailwind emits utility classes in `@layer utilities`, and CSS outside any cascade layer overrides every layer regardless of specificity. Put global element styles, such as resets and defaults for `body`, headings, `button`, or `input`, inside `@layer base { ... }` so utility classes on those elements still apply. Tailwind's Preflight already applies `box-sizing: border-box`, removes default margins, and sets `font: inherit` on form controls, so do not repeat those rules.
+--- ../code/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/README.md
+# @jridgewell/gen-mapping
+
+> Generate source maps
+
+`gen-mapping` allows you to generate a source map during transpilation or minification.
+With a source map, you're able to trace the original location in the source file, either in Chrome's
+DevTools or using a library like [`@jridgewell/trace-mapping`][trace-mapping].
+
+You may already be familiar with the [`source-map`][source-map] package's `SourceMapGenerator`. This
+provides the same `addMapping` and `setSourceContent` API.
+
+## Installation
+
+```sh
+npm install @jridgewell/gen-mapping
+```
+
+## Usage
+
+```typescript
+import { GenMapping, addMapping, setSourceContent, toEncodedMap, toDecodedMap } from '@jridgewell/gen-mapping';
+
+const map = new GenMapping({
+  file: 'output.js',
+  sourceRoot: 'https://example.com/',
+});
+
+setSourceContent(map, 'input.js', `function foo() {}`);
+
+addMapping(map, {
+  // Lines start at line 1, columns at column 0.
+  generated: { line: 1, column: 0 },
+  source: 'input.js',
+  original: { line: 1, column: 0 },
+});
+
+addMapping(map, {
+  generated: { line: 1, column: 9 },
+  source: 'input.js',
+  original: { line: 1, column: 9 },
+  name: 'foo',
+});
+
+assert.deepEqual(toDecodedMap(map), {
+  version: 3,
+  file: 'output.js',
+  names: ['foo'],
+  sourceRoot: 'https://example.com/',
+  sources: ['input.js'],
+  sourcesContent: ['function foo() {}'],
+  mappings: [
+    [ [0, 0, 0, 0], [9, 0, 0, 9, 0] ]
+  ],
+});
+
+assert.deepEqual(toEncodedMap(map), {
+  version: 3,
+  file: 'output.js',
+  names: ['foo'],
+  sourceRoot: 'https://example.com/',
+  sources: ['input.js'],
+  sourcesContent: ['function foo() {}'],
+  mappings: 'AAAA,SAASA',
+});
+```
+
+### Smaller Sourcemaps
+
+Not everything needs to be added to a sourcemap, and needless markings can cause signficantly
+larger file sizes. `gen-mapping` exposes `maybeAddSegment`/`maybeAddMapping` APIs that will
+intelligently determine if this marking adds useful information. If not, the marking will be
+skipped.
+
+```typescript
+import { maybeAddMapping } from '@jridgewell/gen-mapping';
+
+const map = new GenMapping();
+
+// Adding a sourceless marking at the beginning of a line isn't useful.
+maybeAddMapping(map, {
+  generated: { line: 1, column: 0 },
+});
+
+// Adding a new source marking is useful.
+maybeAddMapping(map, {
+  generated: { line: 1, column: 0 },
+  source: 'input.js',
+  original: { line: 1, column: 0 },
+});
+
+// But adding another marking pointing to the exact same original location isn't, even if the
+// generated column changed.
+maybeAddMapping(map, {
+  generated: { line: 1, column: 9 },
+  source: 'input.js',
+  original: { line: 1, column: 0 },
+});
+
+assert.deepEqual(toEncodedMap(map), {
+  version: 3,
+  names: [],
+  sources: ['input.js'],
+  sourcesContent: [null],
+  mappings: 'AAAA',
+});
+```
+
+## Benchmarks
+
+```
+node v18.0.0
+
+amp.js.map
+Memory Usage:
+gen-mapping: addSegment      5852872 bytes
+gen-mapping: addMapping      7716042 bytes
+source-map-js                6143250 bytes
+source-map-0.6.1             6124102 bytes
+source-map-0.8.0             6121173 bytes
+Smallest memory usage is gen-mapping: addSegment
+
+Adding speed:
+gen-mapping:      addSegment x 441 ops/sec ±2.07% (90 runs sampled)
+gen-mapping:      addMapping x 350 ops/sec ±2.40% (86 runs sampled)
+source-map-js:    addMapping x 169 ops/sec ±2.42% (80 runs sampled)
+source-map-0.6.1: addMapping x 167 ops/sec ±2.56% (80 runs sampled)
+source-map-0.8.0: addMapping x 168 ops/sec ±2.52% (80 runs sampled)
+Fastest is gen-mapping:      addSegment
+
+Generate speed:
+gen-mapping:      decoded output x 150,824,370 ops/sec ±0.07% (102 runs sampled)
+gen-mapping:      encoded output x 663 ops/sec ±0.22% (98 runs sampled)
+source-map-js:    encoded output x 197 ops/sec ±0.45% (84 runs sampled)
+source-map-0.6.1: encoded output x 198 ops/sec ±0.33% (85 runs sampled)
+source-map-0.8.0: encoded output x 197 ops/sec ±0.06% (93 runs sampled)
+Fastest is gen-mapping:      decoded output
+
+
+***
+
+
+babel.min.js.map
+Memory Usage:
+gen-mapping: addSegment     37578063 bytes
+gen-mapping: addMapping     37212897 bytes
+source-map-js               47638527 bytes
+source-map-0.6.1            47690503 bytes
+source-map-0.8.0            47470188 bytes
+Smallest memory usage is gen-mapping: addMapping
+
+Adding speed:
+gen-mapping:      addSegment x 31.05 ops/sec ±8.31% (43 runs sampled)
+gen-mapping:      addMapping x 29.83 ops/sec ±7.36% (51 runs sampled)
+source-map-js:    addMapping x 20.73 ops/sec ±6.22% (38 runs sampled)
+source-map-0.6.1: addMapping x 20.03 ops/sec ±10.51% (38 runs sampled)
+source-map-0.8.0: addMapping x 19.30 ops/sec ±8.27% (37 runs sampled)
+Fastest is gen-mapping:      addSegment
+
+Generate speed:
+gen-mapping:      decoded output x 381,379,234 ops/sec ±0.29% (96 runs sampled)
+gen-mapping:      encoded output x 95.15 ops/sec ±2.98% (72 runs sampled)
+source-map-js:    encoded output x 15.20 ops/sec ±7.41% (33 runs sampled)
+source-map-0.6.1: encoded output x 16.36 ops/sec ±10.46% (31 runs sampled)
+source-map-0.8.0: encoded output x 16.06 ops/sec ±6.45% (31 runs sampled)
+Fastest is gen-mapping:      decoded output
+
+
+***
+
+
+preact.js.map
+Memory Usage:
+gen-mapping: addSegment       416247 bytes
+gen-mapping: addMapping       419824 bytes
+source-map-js                1024619 bytes
+source-map-0.6.1             1146004 bytes
+source-map-0.8.0             1113250 bytes
+Smallest memory usage is gen-mapping: addSegment
+
+Adding speed:
+gen-mapping:      addSegment x 13,755 ops/sec ±0.15% (98 runs sampled)
+gen-mapping:      addMapping x 13,013 ops/sec ±0.11% (101 runs sampled)
+source-map-js:    addMapping x 4,564 ops/sec ±0.21% (98 runs sampled)
+source-map-0.6.1: addMapping x 4,562 ops/sec ±0.11% (99 runs sampled)
+source-map-0.8.0: addMapping x 4,593 ops/sec ±0.11% (100 runs sampled)
+Fastest is gen-mapping:      addSegment
+
+Generate speed:
+gen-mapping:      decoded output x 379,864,020 ops/sec ±0.23% (93 runs sampled)
+gen-mapping:      encoded output x 14,368 ops/sec ±4.07% (82 runs sampled)
+source-map-js:    encoded output x 5,261 ops/sec ±0.21% (99 runs sampled)
+source-map-0.6.1: encoded output x 5,124 ops/sec ±0.58% (99 runs sampled)
+source-map-0.8.0: encoded output x 5,434 ops/sec ±0.33% (96 runs sampled)
+Fastest is gen-mapping:      decoded output
+
+
+***
+
+
+react.js.map
+Memory Usage:
+gen-mapping: addSegment       975096 bytes
+gen-mapping: addMapping      1102981 bytes
+source-map-js                2918836 bytes
+source-map-0.6.1             2885435 bytes
+source-map-0.8.0             2874336 bytes
+Smallest memory usage is gen-mapping: addSegment
+
+Adding speed:
+gen-mapping:      addSegment x 4,772 ops/sec ±0.15% (100 runs sampled)
+gen-mapping:      addMapping x 4,456 ops/sec ±0.13% (97 runs sampled)
+source-map-js:    addMapping x 1,618 ops/sec ±0.24% (97 runs sampled)
+source-map-0.6.1: addMapping x 1,622 ops/sec ±0.12% (99 runs sampled)
+source-map-0.8.0: addMapping x 1,631 ops/sec ±0.12% (100 runs sampled)
+Fastest is gen-mapping:      addSegment
+
+Generate speed:
+gen-mapping:      decoded output x 379,107,695 ops/sec ±0.07% (99 runs sampled)
+gen-mapping:      encoded output x 5,421 ops/sec ±1.60% (89 runs sampled)
+source-map-js:    encoded output x 2,113 ops/sec ±1.81% (98 runs sampled)
+--- ../code/node_modules/.pnpm/@jridgewell+remapping@2.3.5/node_modules/@jridgewell/remapping/README.md
+# @jridgewell/remapping
+
+> Remap sequential sourcemaps through transformations to point at the original source code
+
+Remapping allows you to take the sourcemaps generated through transforming your code and "remap"
+them to the original source locations. Think "my minified code, transformed with babel and bundled
+with webpack", all pointing to the correct location in your original source code.
+
+With remapping, none of your source code transformations need to be aware of the input's sourcemap,
+they only need to generate an output sourcemap. This greatly simplifies building custom
+transformations (think a find-and-replace).
+
+## Installation
+
+```sh
+npm install @jridgewell/remapping
+```
+
+## Usage
+
+```typescript
+function remapping(
+  map: SourceMap | SourceMap[],
+  loader: (file: string, ctx: LoaderContext) => (SourceMap | null | undefined),
+  options?: { excludeContent: boolean, decodedMappings: boolean }
+): SourceMap;
+
+// LoaderContext gives the loader the importing sourcemap, tree depth, the ability to override the
+// "source" location (where child sources are resolved relative to, or the location of original
+// source), and the ability to override the "content" of an original source for inclusion in the
+// output sourcemap.
+type LoaderContext = {
+ readonly importer: string;
+ readonly depth: number;
+ source: string;
+ content: string | null | undefined;
+}
+```
+
+`remapping` takes the final output sourcemap, and a `loader` function. For every source file pointer
+in the sourcemap, the `loader` will be called with the resolved path. If the path itself represents
+a transformed file (it has a sourcmap associated with it), then the `loader` should return that
+sourcemap. If not, the path will be treated as an original, untransformed source code.
+
+```js
+// Babel transformed "helloworld.js" into "transformed.js"
+const transformedMap = JSON.stringify({
+  file: 'transformed.js',
+  // 1st column of 2nd line of output file translates into the 1st source
+  // file, line 3, column 2
+  mappings: ';CAEE',
+  sources: ['helloworld.js'],
+  version: 3,
+});
+
+// Uglify minified "transformed.js" into "transformed.min.js"
+const minifiedTransformedMap = JSON.stringify({
+  file: 'transformed.min.js',
+  // 0th column of 1st line of output file translates into the 1st source
+  // file, line 2, column 1.
+  mappings: 'AACC',
+  names: [],
+  sources: ['transformed.js'],
+  version: 3,
+});
+
+const remapped = remapping(
+  minifiedTransformedMap,
+  (file, ctx) => {
+
+    // The "transformed.js" file is an transformed file.
+    if (file === 'transformed.js') {
+      // The root importer is empty.
+      console.assert(ctx.importer === '');
+      // The depth in the sourcemap tree we're currently loading.
+      // The root `minifiedTransformedMap` is depth 0, and its source children are depth 1, etc.
+      console.assert(ctx.depth === 1);
+
+      return transformedMap;
+    }
+
+    // Loader will be called to load transformedMap's source file pointers as well.
+    console.assert(file === 'helloworld.js');
+    // `transformed.js`'s sourcemap points into `helloworld.js`.
+    console.assert(ctx.importer === 'transformed.js');
+    // This is a source child of `transformed`, which is a source child of `minifiedTransformedMap`.
+    console.assert(ctx.depth === 2);
+    return null;
+  }
+);
+
+console.log(remapped);
+// {
+//   file: 'transpiled.min.js',
+//   mappings: 'AAEE',
+//   sources: ['helloworld.js'],
+//   version: 3,
+// };
+```
+
+In this example, `loader` will be called twice:
+
+1. `"transformed.js"`, the first source file pointer in the `minifiedTransformedMap`. We return the
+   associated sourcemap for it (its a transformed file, after all) so that sourcemap locations can
+   be traced through it into the source files it represents.
+2. `"helloworld.js"`, our original, unmodified source code. This file does not have a sourcemap, so
+   we return `null`.
+
+The `remapped` sourcemap now points from `transformed.min.js` into locations in `helloworld.js`. If
+you were to read the `mappings`, it says "0th column of the first line output line points to the 1st
+column of the 2nd line of the file `helloworld.js`".
+
+### Multiple transformations of a file
+
+As a convenience, if you have multiple single-source transformations of a file, you may pass an
+array of sourcemap files in the order of most-recent transformation sourcemap first. Note that this
+changes the `importer` and `depth` of each call to our loader. So our above example could have been
+written as:
+
+```js
+const remapped = remapping(
+  [minifiedTransformedMap, transformedMap],
+  () => null
+);
+
+console.log(remapped);
+// {
+//   file: 'transpiled.min.js',
+//   mappings: 'AAEE',
+//   sources: ['helloworld.js'],
+//   version: 3,
+// };
+```
+
+### Advanced control of the loading graph
+
+#### `source`
+
+The `source` property can overridden to any value to change the location of the current load. Eg,
+for an original source file, it allows us to change the location to the original source regardless
+of what the sourcemap source entry says. And for transformed files, it allows us to change the
+relative resolving location for child sources of the loaded sourcemap.
+
+```js
+const remapped = remapping(
+  minifiedTransformedMap,
+  (file, ctx) => {
+
+    if (file === 'transformed.js') {
+      // We pretend the transformed.js file actually exists in the 'src/' directory. When the nested
+      // source files are loaded, they will now be relative to `src/`.
+      ctx.source = 'src/transformed.js';
+      return transformedMap;
+    }
+
+    console.assert(file === 'src/helloworld.js');
+    // We could futher change the source of this original file, eg, to be inside a nested directory
+    // itself. This will be reflected in the remapped sourcemap.
+    ctx.source = 'src/nested/transformed.js';
+    return null;
+  }
+);
+
+console.log(remapped);
+// {
+//   …,
+//   sources: ['src/nested/helloworld.js'],
+// };
+```
+
+
+#### `content`
+
+The `content` property can be overridden when we encounter an original source file. Eg, this allows
+you to manually provide the source content of the original file regardless of whether the
+`sourcesContent` field is present in the parent sourcemap. It can also be set to `null` to remove
+the source content.
+
+```js
+const remapped = remapping(
+  minifiedTransformedMap,
+  (file, ctx) => {
+
+    if (file === 'transformed.js') {
+      // transformedMap does not include a `sourcesContent` field, so usually the remapped sourcemap
+      // would not include any `sourcesContent` values.
+      return transformedMap;
+    }
+
+    console.assert(file === 'helloworld.js');
+    // We can read the file to provide the source content.
+    ctx.content = fs.readFileSync(file, 'utf8');
+    return null;
+  }
+);
+
+console.log(remapped);
+// {
+//   …,
+//   sourcesContent: [
+//     'console.log("Hello world!")',
+//   ],
+// };
+```
+
+### Options
+
+#### excludeContent
+
+By default, `excludeContent` is `false`. Passing `{ excludeContent: true }` will exclude the
+`sourcesContent` field from the returned sourcemap. This is mainly useful when you want to reduce
+the size out the sourcemap.
+
+#### decodedMappings
+
+By default, `decodedMappings` is `false`. Passing `{ decodedMappings: true }` will leave the
+`mappings` field in a [decoded state](https://github.com/rich-harris/sourcemap-codec) instead of
+encoding into a VLQ string.
+--- ../code/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/README.md
+# @jridgewell/resolve-uri
+
+> Resolve a URI relative to an optional base URI
+
+Resolve any combination of absolute URIs, protocol-realtive URIs, absolute paths, or relative paths.
+
+## Installation
+
+```sh
+npm install @jridgewell/resolve-uri
+```
+
+## Usage
+
+```typescript
+function resolve(input: string, base?: string): string;
+```
+
+```js
+import resolve from '@jridgewell/resolve-uri';
+
+resolve('foo', 'https://example.com'); // => 'https://example.com/foo'
+```
+
+| Input                 | Base                    | Resolution                     | Explanation                                                  |
+|-----------------------|-------------------------|--------------------------------|--------------------------------------------------------------|
+| `https://example.com` | _any_                   | `https://example.com/`         | Input is normalized only                                     |
+| `//example.com`       | `https://base.com/`     | `https://example.com/`         | Input inherits the base's protocol                           |
+| `//example.com`       | _rest_                  | `//example.com/`               | Input is normalized only                                     |
+| `/example`            | `https://base.com/`     | `https://base.com/example`     | Input inherits the base's origin                             |
+| `/example`            | `//base.com/`           | `//base.com/example`           | Input inherits the base's host and remains protocol relative |
+| `/example`            | _rest_                  | `/example`                     | Input is normalized only                                     |
+| `example`             | `https://base.com/dir/` | `https://base.com/dir/example` | Input is joined with the base                                |
+| `example`             | `https://base.com/file` | `https://base.com/example`     | Input is joined with the base without its file               |
+| `example`             | `//base.com/dir/`       | `//base.com/dir/example`       | Input is joined with the base's last directory               |
+| `example`             | `//base.com/file`       | `//base.com/example`           | Input is joined with the base without its file               |
+| `example`             | `/base/dir/`            | `/base/dir/example`            | Input is joined with the base's last directory               |
+| `example`             | `/base/file`            | `/base/example`                | Input is joined with the base without its file               |
+| `example`             | `base/dir/`             | `base/dir/example`             | Input is joined with the base's last directory               |
+| `example`             | `base/file`             | `base/example`                 | Input is joined with the base without its file               |
+--- ../code/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.5.5/node_modules/@jridgewell/sourcemap-codec/README.md
+# @jridgewell/sourcemap-codec
+
+Encode/decode the `mappings` property of a [sourcemap](https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit).
+
+
+## Why?
+
+Sourcemaps are difficult to generate and manipulate, because the `mappings` property – the part that actually links the generated code back to the original source – is encoded using an obscure method called [Variable-length quantity](https://en.wikipedia.org/wiki/Variable-length_quantity). On top of that, each segment in the mapping contains offsets rather than absolute indices, which means that you can't look at a segment in isolation – you have to understand the whole sourcemap.
+
+This package makes the process slightly easier.
+
+
+## Installation
+
+```bash
+npm install @jridgewell/sourcemap-codec
+```
+
+
+## Usage
+
+```js
+import { encode, decode } from '@jridgewell/sourcemap-codec';
+
+var decoded = decode( ';EAEEA,EAAE,EAAC,CAAE;ECQY,UACC' );
+
+assert.deepEqual( decoded, [
+	// the first line (of the generated code) has no mappings,
+	// as shown by the starting semi-colon (which separates lines)
+	[],
+
+	// the second line contains four (comma-separated) segments
+	[
+		// segments are encoded as you'd expect:
+		// [ generatedCodeColumn, sourceIndex, sourceCodeLine, sourceCodeColumn, nameIndex ]
+
+		// i.e. the first segment begins at column 2, and maps back to the second column
+		// of the second line (both zero-based) of the 0th source, and uses the 0th
+		// name in the `map.names` array
+		[ 2, 0, 2, 2, 0 ],
+
+		// the remaining segments are 4-length rather than 5-length,
+		// because they don't map a name
+		[ 4, 0, 2, 4 ],
+		[ 6, 0, 2, 5 ],
+		[ 7, 0, 2, 7 ]
+	],
+
+	// the final line contains two segments
+	[
+		[ 2, 1, 10, 19 ],
+		[ 12, 1, 11, 20 ]
+	]
+]);
+
+var encoded = encode( decoded );
+assert.equal( encoded, ';EAEEA,EAAE,EAAC,CAAE;ECQY,UACC' );
+```
+
+## Benchmarks
+
+```
+node v20.10.0
+
+amp.js.map - 45120 segments
+
+Decode Memory Usage:
+local code                             5815135 bytes
+@jridgewell/sourcemap-codec 1.4.15     5868160 bytes
+sourcemap-codec                        5492584 bytes
+source-map-0.6.1                      13569984 bytes
+source-map-0.8.0                       6390584 bytes
+chrome dev tools                       8011136 bytes
+Smallest memory usage is sourcemap-codec
+
+Decode speed:
+decode: local code x 492 ops/sec ±1.22% (90 runs sampled)
+decode: @jridgewell/sourcemap-codec 1.4.15 x 499 ops/sec ±1.16% (89 runs sampled)
+decode: sourcemap-codec x 376 ops/sec ±1.66% (89 runs sampled)
+decode: source-map-0.6.1 x 34.99 ops/sec ±0.94% (48 runs sampled)
+decode: source-map-0.8.0 x 351 ops/sec ±0.07% (95 runs sampled)
+chrome dev tools x 165 ops/sec ±0.91% (86 runs sampled)
+Fastest is decode: @jridgewell/sourcemap-codec 1.4.15
+
+Encode Memory Usage:
+local code                              444248 bytes
+@jridgewell/sourcemap-codec 1.4.15      623024 bytes
+sourcemap-codec                        8696280 bytes
+source-map-0.6.1                       8745176 bytes
+source-map-0.8.0                       8736624 bytes
+Smallest memory usage is local code
+
+Encode speed:
+encode: local code x 796 ops/sec ±0.11% (97 runs sampled)
+encode: @jridgewell/sourcemap-codec 1.4.15 x 795 ops/sec ±0.25% (98 runs sampled)
+encode: sourcemap-codec x 231 ops/sec ±0.83% (86 runs sampled)
+encode: source-map-0.6.1 x 166 ops/sec ±0.57% (86 runs sampled)
+encode: source-map-0.8.0 x 203 ops/sec ±0.45% (88 runs sampled)
+Fastest is encode: local code,encode: @jridgewell/sourcemap-codec 1.4.15
+
+
+***
+
+
+babel.min.js.map - 347793 segments
+
+Decode Memory Usage:
+local code                            35424960 bytes
+@jridgewell/sourcemap-codec 1.4.15    35424696 bytes
+sourcemap-codec                       36033464 bytes
+source-map-0.6.1                      62253704 bytes
+source-map-0.8.0                      43843920 bytes
+chrome dev tools                      45111400 bytes
+Smallest memory usage is @jridgewell/sourcemap-codec 1.4.15
+
+Decode speed:
+decode: local code x 38.18 ops/sec ±5.44% (52 runs sampled)
+decode: @jridgewell/sourcemap-codec 1.4.15 x 38.36 ops/sec ±5.02% (52 runs sampled)
+decode: sourcemap-codec x 34.05 ops/sec ±4.45% (47 runs sampled)
+decode: source-map-0.6.1 x 4.31 ops/sec ±2.76% (15 runs sampled)
+decode: source-map-0.8.0 x 55.60 ops/sec ±0.13% (73 runs sampled)
+chrome dev tools x 16.94 ops/sec ±3.78% (46 runs sampled)
+Fastest is decode: source-map-0.8.0
+
+Encode Memory Usage:
+local code                             2606016 bytes
+@jridgewell/sourcemap-codec 1.4.15     2626440 bytes
+sourcemap-codec                       21152576 bytes
+source-map-0.6.1                      25023928 bytes
+source-map-0.8.0                      25256448 bytes
+Smallest memory usage is local code
+
+Encode speed:
+encode: local code x 127 ops/sec ±0.18% (83 runs sampled)
+encode: @jridgewell/sourcemap-codec 1.4.15 x 128 ops/sec ±0.26% (83 runs sampled)
+encode: sourcemap-codec x 29.31 ops/sec ±2.55% (53 runs sampled)
+encode: source-map-0.6.1 x 18.85 ops/sec ±3.19% (36 runs sampled)
+encode: source-map-0.8.0 x 19.34 ops/sec ±1.97% (36 runs sampled)
+Fastest is encode: @jridgewell/sourcemap-codec 1.4.15
+
+
+***
+
+
+preact.js.map - 1992 segments
+
+Decode Memory Usage:
+local code                              261696 bytes
+@jridgewell/sourcemap-codec 1.4.15      244296 bytes
+sourcemap-codec                         302816 bytes
+source-map-0.6.1                        939176 bytes
+source-map-0.8.0                           336 bytes
+chrome dev tools                        587368 bytes
+Smallest memory usage is source-map-0.8.0
+
+Decode speed:
+decode: local code x 17,782 ops/sec ±0.32% (97 runs sampled)
+decode: @jridgewell/sourcemap-codec 1.4.15 x 17,863 ops/sec ±0.40% (100 runs sampled)
+decode: sourcemap-codec x 12,453 ops/sec ±0.27% (101 runs sampled)
+decode: source-map-0.6.1 x 1,288 ops/sec ±1.05% (96 runs sampled)
+decode: source-map-0.8.0 x 9,289 ops/sec ±0.27% (101 runs sampled)
+chrome dev tools x 4,769 ops/sec ±0.18% (100 runs sampled)
+Fastest is decode: @jridgewell/sourcemap-codec 1.4.15
+
+Encode Memory Usage:
+local code                              262944 bytes
+@jridgewell/sourcemap-codec 1.4.15       25544 bytes
+sourcemap-codec                         323048 bytes
+source-map-0.6.1                        507808 bytes
+source-map-0.8.0                        507480 bytes
+Smallest memory usage is @jridgewell/sourcemap-codec 1.4.15
+
+Encode speed:
+encode: local code x 24,207 ops/sec ±0.79% (95 runs sampled)
+encode: @jridgewell/sourcemap-codec 1.4.15 x 24,288 ops/sec ±0.48% (96 runs sampled)
+encode: sourcemap-codec x 6,761 ops/sec ±0.21% (100 runs sampled)
+encode: source-map-0.6.1 x 5,374 ops/sec ±0.17% (99 runs sampled)
+encode: source-map-0.8.0 x 5,633 ops/sec ±0.32% (99 runs sampled)
+Fastest is encode: @jridgewell/sourcemap-codec 1.4.15,encode: local code
+
+
+***
+
+
+react.js.map - 5726 segments
+
+Decode Memory Usage:
+local code                              678816 bytes
+@jridgewell/sourcemap-codec 1.4.15      678816 bytes
+sourcemap-codec                         816400 bytes
+source-map-0.6.1                       2288864 bytes
+source-map-0.8.0                        721360 bytes
+chrome dev tools                       1012512 bytes
+Smallest memory usage is local code
+
+Decode speed:
+decode: local code x 6,178 ops/sec ±0.19% (98 runs sampled)
+decode: @jridgewell/sourcemap-codec 1.4.15 x 6,261 ops/sec ±0.22% (100 runs sampled)
+decode: sourcemap-codec x 4,472 ops/sec ±0.90% (99 runs sampled)
+decode: source-map-0.6.1 x 449 ops/sec ±0.31% (95 runs sampled)
+decode: source-map-0.8.0 x 3,219 ops/sec ±0.13% (100 runs sampled)
+chrome dev tools x 1,743 ops/sec ±0.20% (99 runs sampled)
+Fastest is decode: @jridgewell/sourcemap-codec 1.4.15
+
+Encode Memory Usage:
+local code                              140960 bytes
+@jridgewell/sourcemap-codec 1.4.15      159808 bytes
+sourcemap-codec                         969304 bytes
+source-map-0.6.1                        930520 bytes
+source-map-0.8.0                        930248 bytes
+Smallest memory usage is local code
+
+Encode speed:
+encode: local code x 8,013 ops/sec ±0.19% (100 runs sampled)
+encode: @jridgewell/sourcemap-codec 1.4.15 x 7,989 ops/sec ±0.20% (101 runs sampled)
+encode: sourcemap-codec x 2,472 ops/sec ±0.21% (99 runs sampled)
+encode: source-map-0.6.1 x 2,200 ops/sec ±0.17% (99 runs sampled)
+encode: source-map-0.8.0 x 2,220 ops/sec ±0.37% (99 runs sampled)
+Fastest is encode: local code
+
+--- ../code/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/README.md
+# @jridgewell/trace-mapping
+
+> Trace the original position through a source map
+
+`trace-mapping` allows you to take the line and column of an output file and trace it to the
+original location in the source file through a source map.
+
+You may already be familiar with the [`source-map`][source-map] package's `SourceMapConsumer`. This
+provides the same `originalPositionFor` and `generatedPositionFor` API, without requiring WASM.
+
+## Installation
+
+```sh
+npm install @jridgewell/trace-mapping
+```
+
+## Usage
+
+```typescript
+import {
+  TraceMap,
+  originalPositionFor,
+  generatedPositionFor,
+  sourceContentFor,
+  isIgnored,
+} from '@jridgewell/trace-mapping';
+
+const tracer = new TraceMap({
+  version: 3,
+  sources: ['input.js'],
+  sourcesContent: ['content of input.js'],
+  names: ['foo'],
+  mappings: 'KAyCIA',
+  ignoreList: [],
+});
+
+// Lines start at line 1, columns at column 0.
+const traced = originalPositionFor(tracer, { line: 1, column: 5 });
+assert.deepEqual(traced, {
+  source: 'input.js',
+  line: 42,
+  column: 4,
+  name: 'foo',
+});
+
+const content = sourceContentFor(tracer, traced.source);
+assert.strictEqual(content, 'content for input.js');
+
+const generated = generatedPositionFor(tracer, {
+  source: 'input.js',
+  line: 42,
+  column: 4,
+});
+assert.deepEqual(generated, {
+  line: 1,
+  column: 5,
+});
+
+const ignored = isIgnored(tracer, 'input.js');
+assert.equal(ignored, false);
+```
+
+We also provide a lower level API to get the actual segment that matches our line and column. Unlike
+`originalPositionFor`, `traceSegment` uses a 0-base for `line`:
+
+```typescript
+import { traceSegment } from '@jridgewell/trace-mapping';
+
+// line is 0-base.
+const traced = traceSegment(tracer, /* line */ 0, /* column */ 5);
+
+// Segments are [outputColumn, sourcesIndex, sourceLine, sourceColumn, namesIndex]
+// Again, line is 0-base and so is sourceLine
+assert.deepEqual(traced, [5, 0, 41, 4, 0]);
+```
+
+### SectionedSourceMaps
+
+The sourcemap spec defines a special `sections` field that's designed to handle concatenation of
+output code with associated sourcemaps. This type of sourcemap is rarely used (no major build tool
+produces it), but if you are hand coding a concatenation you may need it. We provide an `AnyMap`
+helper that can receive either a regular sourcemap or a `SectionedSourceMap` and returns a
+`TraceMap` instance:
+
+```typescript
+import { AnyMap } from '@jridgewell/trace-mapping';
+const fooOutput = 'foo';
+const barOutput = 'bar';
+const output = [fooOutput, barOutput].join('\n');
+
+const sectioned = new AnyMap({
+  version: 3,
+  sections: [
+    {
+      // 0-base line and column
+      offset: { line: 0, column: 0 },
+      // fooOutput's sourcemap
+      map: {
+        version: 3,
+        sources: ['foo.js'],
+        names: ['foo'],
+        mappings: 'AAAAA',
+      },
+    },
+    {
+      // barOutput's sourcemap will not affect the first line, only the second
+      offset: { line: 1, column: 0 },
+      map: {
+        version: 3,
+        sources: ['bar.js'],
+        names: ['bar'],
+        mappings: 'AAAAA',
+      },
+    },
+  ],
+});
+
+const traced = originalPositionFor(sectioned, {
+  line: 2,
+  column: 0,
+});
+
+assert.deepEqual(traced, {
+  source: 'bar.js',
+  line: 1,
+  column: 0,
+  name: 'bar',
+});
+```
+
+## Benchmarks
+
+```
+node v20.10.0
+
+amp.js.map - 45120 segments
+
+Memory Usage:
+trace-mapping decoded         414164 bytes
+trace-mapping encoded        6274352 bytes
+source-map-js               10968904 bytes
+source-map-0.6.1            17587160 bytes
+source-map-0.8.0             8812155 bytes
+Chrome dev tools             8672912 bytes
+Smallest memory usage is trace-mapping decoded
+
+Init speed:
+trace-mapping:    decoded JSON input x 205 ops/sec ±0.19% (88 runs sampled)
+trace-mapping:    encoded JSON input x 405 ops/sec ±1.47% (88 runs sampled)
+trace-mapping:    decoded Object input x 4,645 ops/sec ±0.15% (98 runs sampled)
+trace-mapping:    encoded Object input x 458 ops/sec ±1.63% (91 runs sampled)
+source-map-js:    encoded Object input x 75.48 ops/sec ±1.64% (67 runs sampled)
+source-map-0.6.1: encoded Object input x 39.37 ops/sec ±1.44% (53 runs sampled)
+Chrome dev tools: encoded Object input x 150 ops/sec ±1.76% (79 runs sampled)
+Fastest is trace-mapping:    decoded Object input
+
+Trace speed (random):
+trace-mapping:    decoded originalPositionFor x 44,946 ops/sec ±0.16% (99 runs sampled)
+trace-mapping:    encoded originalPositionFor x 37,995 ops/sec ±1.81% (89 runs sampled)
+source-map-js:    encoded originalPositionFor x 9,230 ops/sec ±1.36% (93 runs sampled)
+source-map-0.6.1: encoded originalPositionFor x 8,057 ops/sec ±0.84% (96 runs sampled)
+source-map-0.8.0: encoded originalPositionFor x 28,198 ops/sec ±1.12% (91 runs sampled)
+Chrome dev tools: encoded originalPositionFor x 46,276 ops/sec ±1.35% (95 runs sampled)
+Fastest is Chrome dev tools: encoded originalPositionFor
+
+Trace speed (ascending):
+trace-mapping:    decoded originalPositionFor x 204,406 ops/sec ±0.19% (97 runs sampled)
+trace-mapping:    encoded originalPositionFor x 196,695 ops/sec ±0.24% (99 runs sampled)
+source-map-js:    encoded originalPositionFor x 11,948 ops/sec ±0.94% (99 runs sampled)
+source-map-0.6.1: encoded originalPositionFor x 10,730 ops/sec ±0.36% (100 runs sampled)
+source-map-0.8.0: encoded originalPositionFor x 51,427 ops/sec ±0.21% (98 runs sampled)
+Chrome dev tools: encoded originalPositionFor x 162,615 ops/sec ±0.18% (98 runs sampled)
+Fastest is trace-mapping:    decoded originalPositionFor
+
+
+***
+
+
+babel.min.js.map - 347793 segments
+
+Memory Usage:
+trace-mapping decoded          18504 bytes
+trace-mapping encoded       35428008 bytes
+source-map-js               51676808 bytes
+source-map-0.6.1            63367136 bytes
+source-map-0.8.0            43158400 bytes
+Chrome dev tools            50721552 bytes
+Smallest memory usage is trace-mapping decoded
+
+Init speed:
+trace-mapping:    decoded JSON input x 17.82 ops/sec ±6.35% (35 runs sampled)
+trace-mapping:    encoded JSON input x 31.57 ops/sec ±7.50% (43 runs sampled)
+trace-mapping:    decoded Object input x 867 ops/sec ±0.74% (94 runs sampled)
+trace-mapping:    encoded Object input x 33.83 ops/sec ±7.66% (46 runs sampled)
+source-map-js:    encoded Object input x 6.58 ops/sec ±3.31% (20 runs sampled)
+source-map-0.6.1: encoded Object input x 4.23 ops/sec ±3.43% (15 runs sampled)
+Chrome dev tools: encoded Object input x 22.14 ops/sec ±3.79% (41 runs sampled)
+Fastest is trace-mapping:    decoded Object input
+
+Trace speed (random):
+trace-mapping:    decoded originalPositionFor x 78,234 ops/sec ±1.48% (29 runs sampled)
+trace-mapping:    encoded originalPositionFor x 60,761 ops/sec ±1.35% (21 runs sampled)
+source-map-js:    encoded originalPositionFor x 51,448 ops/sec ±2.17% (89 runs sampled)
+source-map-0.6.1: encoded originalPositionFor x 47,221 ops/sec ±1.99% (15 runs sampled)
+source-map-0.8.0: encoded originalPositionFor x 84,002 ops/sec ±1.45% (27 runs sampled)
+Chrome dev tools: encoded originalPositionFor x 106,457 ops/sec ±1.38% (37 runs sampled)
+Fastest is Chrome dev tools: encoded originalPositionFor
+
+Trace speed (ascending):
+trace-mapping:    decoded originalPositionFor x 930,943 ops/sec ±0.25% (99 runs sampled)
+trace-mapping:    encoded originalPositionFor x 843,545 ops/sec ±0.34% (97 runs sampled)
+source-map-js:    encoded originalPositionFor x 114,510 ops/sec ±1.37% (36 runs sampled)
+source-map-0.6.1: encoded originalPositionFor x 87,412 ops/sec ±0.72% (92 runs sampled)
+source-map-0.8.0: encoded originalPositionFor x 197,709 ops/sec ±0.89% (59 runs sampled)
+Chrome dev tools: encoded originalPositionFor x 688,983 ops/sec ±0.33% (98 runs sampled)
+Fastest is trace-mapping:    decoded originalPositionFor
+
+
+***
+
+--- ../code/node_modules/.pnpm/@oxc-project+types@0.122.0/node_modules/@oxc-project/types/README.md
+# Oxc Types
+
+Typescript definitions for Oxc AST nodes.
+--- ../code/node_modules/.pnpm/@rolldown+binding-linux-x64-gnu@1.0.0-rc.12/node_modules/@rolldown/binding-linux-x64-gnu/README.md
+# `@rolldown/binding-linux-x64-gnu`
+
+This is the **x86_64-unknown-linux-gnu** binary for `@rolldown/binding`
+--- ../code/node_modules/.pnpm/@rolldown+binding-linux-x64-musl@1.0.0-rc.12/node_modules/@rolldown/binding-linux-x64-musl/README.md
+# `@rolldown/binding-linux-x64-musl`
+
+This is the **x86_64-unknown-linux-musl** binary for `@rolldown/binding`
+--- ../code/node_modules/.pnpm/@rolldown+pluginutils@1.0.0-rc.12/node_modules/@rolldown/pluginutils/README.md
+# @rolldown/pluginutils
+
+A utility library for building flexible, composable filter expressions that can be used in plugin hook filters of Rolldown/Vite/Rollup/Unplugin plugins.
+
+## Installation
+
+```sh
+pnpm add @rolldown/pluginutils
+```
+
+## Usage
+
+### Simple Filters
+
+```ts
+import { exactRegex, makeIdFiltersToMatchWithQuery, prefixRegex } from '@rolldown/pluginutils';
+
+// Match exactly 'foo.js'
+const filter = exactRegex('foo.js');
+
+// Match any id starting with 'lib/'
+const prefix = prefixRegex('lib/');
+
+// Match ids with query params (e.g. 'foo.js?bar')
+const idFilters = makeIdFiltersToMatchWithQuery(['**/*.js', /\.ts$/]);
+
+// Usage in a plugin to define a hook filter
+const myPlugin = {
+  resolveId: {
+    filter: {
+      id: [exactRegex('MY_ID_TO_CHECK'), /some-other-regex/],
+    },
+    handler(id) {
+      // Your code here
+    },
+  },
+};
+```
+
+### Composable Filters
+
+> [!WARNING]
+> Composable filters are not yet supported in Vite or unplugin. They can be used in Rolldown plugins only.
+
+```ts
+import { and, id, include, moduleType, query } from '@rolldown/pluginutils';
+
+// Build a filter expression
+const filterExpr = and(id(/\.ts$/), moduleType('ts'), query('foo', true));
+
+// Usage in a plugin to define a hook filter
+const myPlugin = {
+  transform: {
+    filter: [include(filterExpr)],
+    handler(code, id, options) {
+      // Your code here
+    },
+  },
+};
+```
+
+## API Reference
+
+### Simple Filters
+
+- `exactRegex(str: string, flags?: string): RegExp` — Matches the exact string.
+- `prefixRegex(str: string, flags?: string): RegExp` — Matches values with the given prefix.
+- `makeIdFiltersToMatchWithQuery(input: string | RegExp | (string | RegExp)[]): string | RegExp | (string | RegExp)[]` — Adapts filters to match ids with query params.
+
+### Composable Filters
+
+- `and(...exprs)` / `or(...exprs)` / `not(expr)` — Logical composition of filter expressions.
+- `id(pattern, params?)` — Filter by id. A `string` pattern is matched by exact equality (not glob); a `RegExp` is tested against the id.
+- `importerId(pattern, params?)` — Filter by importer id. A `string` pattern is matched by exact equality; a `RegExp` is tested against the importer id. Only usable with the `resolveId` hook.
+- `moduleType(type)` — Filter by module type (e.g. 'js', 'tsx', or 'json').
+- `code(pattern)` — Filter by code content.
+- `query(key, pattern)` — Filter by query parameter.
+- `include(expr)` / `exclude(expr)` — Top-level include/exclude wrappers.
+- `queries(obj)` — Compose multiple query filters.
+
+### Utilities
+
+- `filterVitePlugins(plugins)` — Filters out Vite plugins with `apply: 'serve'`.
+--- ../code/node_modules/.pnpm/@rolldown+pluginutils@1.0.0-rc.7/node_modules/@rolldown/pluginutils/README.md
+# @rolldown/pluginutils
+
+A utility library for building flexible, composable filter expressions that can be used in plugin hook filters of Rolldown/Vite/Rollup/Unplugin plugins.
+
+## Installation
+
+```sh
+pnpm add @rolldown/pluginutils
+```
+
+## Usage
+
+### Simple Filters
+
+```ts
+import { exactRegex, makeIdFiltersToMatchWithQuery, prefixRegex } from '@rolldown/pluginutils';
+
+// Match exactly 'foo.js'
+const filter = exactRegex('foo.js');
+
+// Match any id starting with 'lib/'
+const prefix = prefixRegex('lib/');
+
+// Match ids with query params (e.g. 'foo.js?bar')
+const idFilters = makeIdFiltersToMatchWithQuery(['**/*.js', /\.ts$/]);
+
+// Usage in a plugin to define a hook filter
+const myPlugin = {
+  resolveId: {
+    filter: {
+      id: [exactRegex('MY_ID_TO_CHECK'), /some-other-regex/],
+    },
+    handler(id) {
+      // Your code here
+    },
+  },
+};
+```
+
+### Composable Filters
+
+> [!WARNING]
+> Composable filters are not yet supported in legacy Vite or unplugin. They can be used in Rolldown/Rolldown-Vite/Vite Beta plugins only.
+
+```ts
+import { and, id, include, moduleType, query } from '@rolldown/pluginutils';
+
+// Build a filter expression
+const filterExpr = and(id(/\.ts$/), moduleType('ts'), query('foo', true));
+
+// Usage in a plugin to define a hook filter
+const myPlugin = {
+  transform: {
+    filter: [include(filterExpr)],
+    handler(code, id, options) {
+      // Your code here
+    },
+  },
+};
+```
+
+## API Reference
+
+### Simple Filters
+
+- `exactRegex(str: string, flags?: string): RegExp` — Matches the exact string.
+- `prefixRegex(str: string, flags?: string): RegExp` — Matches values with the given prefix.
+- `makeIdFiltersToMatchWithQuery(input: string | RegExp | (string | RegExp)[]): string | RegExp | (string | RegExp)[]` — Adapts filters to match ids with query params.
+
+### Composable Filters
+
+- `and(...exprs)` / `or(...exprs)` / `not(expr)` — Logical composition of filter expressions.
+- `id(pattern, params?)` — Filter by id. A `string` pattern is matched by exact equality (not glob); a `RegExp` is tested against the id.
+- `importerId(pattern, params?)` — Filter by importer id. A `string` pattern is matched by exact equality; a `RegExp` is tested against the importer id. Only usable with the `resolveId` hook.
+- `moduleType(type)` — Filter by module type (e.g. 'js', 'tsx', or 'json').
+- `code(pattern)` — Filter by code content.
+- `query(key, pattern)` — Filter by query parameter.
+- `include(expr)` / `exclude(expr)` — Top-level include/exclude wrappers.
+- `queries(obj)` — Compose multiple query filters.
+
+### Utilities
+
+- `filterVitePlugins(plugins)` — Filters out Vite plugins with `apply: 'serve'`.
+--- ../code/node_modules/.pnpm/@tailwindcss+node@4.2.2/node_modules/@tailwindcss/node/README.md
+<p align="center">
+  <a href="https://tailwindcss.com" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/HEAD/.github/logo-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/HEAD/.github/logo-light.svg">
+      <img alt="Tailwind CSS" src="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/HEAD/.github/logo-light.svg" width="350" height="70" style="max-width: 100%;">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  A utility-first CSS framework for rapidly building custom user interfaces.
+</p>
+
+<p align="center">
+    <a href="https://github.com/tailwindlabs/tailwindcss/actions"><img src="https://img.shields.io/github/actions/workflow/status/tailwindlabs/tailwindcss/ci.yml?branch=main" alt="Build Status"></a>
+    <a href="https://www.npmjs.com/package/tailwindcss"><img src="https://img.shields.io/npm/dt/tailwindcss.svg" alt="Total Downloads"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss/releases"><img src="https://img.shields.io/npm/v/tailwindcss.svg" alt="Latest Release"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/tailwindcss.svg" alt="License"></a>
+</p>
+
+---
+
+## Documentation
+
+For full documentation, visit [tailwindcss.com](https://tailwindcss.com).
+
+## Community
+
+For help, discussion about best practices, or feature ideas:
+
+[Discuss Tailwind CSS on GitHub](https://github.com/tailwindlabs/tailwindcss/discussions)
+
+## Contributing
+
+If you're interested in contributing to Tailwind CSS, please read our [contributing docs](https://github.com/tailwindlabs/tailwindcss/blob/main/.github/CONTRIBUTING.md) **before submitting a pull request**.
+--- ../code/node_modules/.pnpm/@tailwindcss+oxide-linux-x64-gnu@4.2.2/node_modules/@tailwindcss/oxide-linux-x64-gnu/README.md
+# `@tailwindcss/oxide-linux-x64-gnu`
+
+This is the **x86_64-unknown-linux-gnu** binary for `@tailwindcss/oxide`
+--- ../code/node_modules/.pnpm/@tailwindcss+oxide-linux-x64-musl@4.2.2/node_modules/@tailwindcss/oxide-linux-x64-musl/README.md
+# `@tailwindcss/oxide-linux-x64-musl`
+
+This is the **x86_64-unknown-linux-musl** binary for `@tailwindcss/oxide`
+--- ../code/node_modules/.pnpm/@tailwindcss+vite@4.2.2_vite@8.0.5_jiti@2.6.1_/node_modules/@tailwindcss/vite/README.md
+<p align="center">
+  <a href="https://tailwindcss.com" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/HEAD/.github/logo-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/HEAD/.github/logo-light.svg">
+      <img alt="Tailwind CSS" src="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/HEAD/.github/logo-light.svg" width="350" height="70" style="max-width: 100%;">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  A utility-first CSS framework for rapidly building custom user interfaces.
+</p>
+
+<p align="center">
+    <a href="https://github.com/tailwindlabs/tailwindcss/actions"><img src="https://img.shields.io/github/actions/workflow/status/tailwindlabs/tailwindcss/ci.yml?branch=main" alt="Build Status"></a>
+    <a href="https://www.npmjs.com/package/tailwindcss"><img src="https://img.shields.io/npm/dt/tailwindcss.svg" alt="Total Downloads"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss/releases"><img src="https://img.shields.io/npm/v/tailwindcss.svg" alt="Latest Release"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/tailwindcss.svg" alt="License"></a>
+</p>
+
+---
+
+## Documentation
+
+For full documentation, visit [tailwindcss.com](https://tailwindcss.com).
+
+## Community
+
+For help, discussion about best practices, or feature ideas:
+
+[Discuss Tailwind CSS on GitHub](https://github.com/tailwindlabs/tailwindcss/discussions)
+
+## Contributing
+
+If you're interested in contributing to Tailwind CSS, please read our [contributing docs](https://github.com/tailwindlabs/tailwindcss/blob/main/.github/CONTRIBUTING.md) **before submitting a pull request**.
+
+---
+
+## `@tailwindcss/vite` plugin API
+
+### Enabling or disabling Lightning CSS
+
+By default, this plugin detects whether or not the CSS is being built for production by checking the `NODE_ENV` environment variable. When building for production Lightning CSS will be enabled otherwise it is disabled.
+
+If you want to always enable or disable Lightning CSS the `optimize` option may be used:
+
+```js
+import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [
+    tailwindcss({
+      // Disable Lightning CSS optimization
+      optimize: false,
+    }),
+  ],
+})
+```
+
+It's also possible to keep Lightning CSS enabled but disable minification:
+
+```js
+import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [
+    tailwindcss({
+      // Enable Lightning CSS but disable minification
+      optimize: { minify: false },
+    }),
+  ],
+})
+```
+--- ../code/node_modules/.pnpm/@types+node@22.19.17/node_modules/@types/node/README.md
+# Installation
+> `npm install --save @types/node`
+
+# Summary
+This package contains type definitions for node (https://nodejs.org/).
+
+# Details
+Files were exported from https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node/v22.
+
+### Additional Details
+ * Last updated: Fri, 03 Apr 2026 11:14:41 GMT
+ * Dependencies: [undici-types](https://npmjs.com/package/undici-types)
+
+# Credits
+These definitions were written by [Microsoft TypeScript](https://github.com/Microsoft), [Alberto Schiabel](https://github.com/jkomyno), [Andrew Makarov](https://github.com/r3nya), [Benjamin Toueg](https://github.com/btoueg), [David Junger](https://github.com/touffy), [Mohsen Azimi](https://github.com/mohsen1), [Nikita Galkin](https://github.com/galkin), [Sebastian Silbermann](https://github.com/eps1lon), [Wilco Bakker](https://github.com/WilcoBakker), [Marcin Kopacz](https://github.com/chyzwar), [Trivikram Kamat](https://github.com/trivikr), [Junxiao Shi](https://github.com/yoursunny), [Ilia Baryshnikov](https://github.com/qwelias), [ExE Boss](https://github.com/ExE-Boss), [Piotr Błażejewicz](https://github.com/peterblazejewicz), [Anna Henningsen](https://github.com/addaleax), [Victor Perin](https://github.com/victorperin), [NodeJS Contributors](https://github.com/NodeJS), [Linus Unnebäck](https://github.com/LinusU), [wafuwafu13](https://github.com/wafuwafu13), [Matteo Collina](https://github.com/mcollina), [Dmitry Semigradsky](https://github.com/Semigradsky), and [René](https://github.com/Renegade334).
+--- ../code/node_modules/.pnpm/@types+react-dom@19.2.3_@types+react@19.2.14/node_modules/@types/react-dom/README.md
+# Installation
+> `npm install --save @types/react-dom`
+
+# Summary
+This package contains type definitions for react-dom (https://react.dev/).
+
+# Details
+Files were exported from https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-dom.
+
+### Additional Details
+ * Last updated: Wed, 12 Nov 2025 04:37:38 GMT
+ * Dependencies: none
+ * Peer dependencies: [@types/react](https://npmjs.com/package/@types/react)
+
+# Credits
+These definitions were written by [Asana](https://asana.com), [AssureSign](http://www.assuresign.com), [Microsoft](https://microsoft.com), [MartynasZilinskas](https://github.com/MartynasZilinskas), [Josh Rutherford](https://github.com/theruther4d), [Jessica Franco](https://github.com/Jessidhia), and [Sebastian Silbermann](https://github.com/eps1lon).
+--- ../code/node_modules/.pnpm/@types+react@19.2.14/node_modules/@types/react/README.md
+# Installation
+> `npm install --save @types/react`
+
+# Summary
+This package contains type definitions for react (https://react.dev/).
+
+# Details
+Files were exported from https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react.
+
+### Additional Details
+ * Last updated: Wed, 11 Feb 2026 11:44:57 GMT
+ * Dependencies: [csstype](https://npmjs.com/package/csstype)
+
+# Credits
+These definitions were written by [Asana](https://asana.com), [AssureSign](http://www.assuresign.com), [Microsoft](https://microsoft.com), [John Reilly](https://github.com/johnnyreilly), [Benoit Benezech](https://github.com/bbenezech), [Patricio Zavolinsky](https://github.com/pzavolinsky), [Eric Anderson](https://github.com/ericanderson), [Dovydas Navickas](https://github.com/DovydasNavickas), [Josh Rutherford](https://github.com/theruther4d), [Guilherme Hübner](https://github.com/guilhermehubner), [Ferdy Budhidharma](https://github.com/ferdaber), [Johann Rakotoharisoa](https://github.com/jrakotoharisoa), [Olivier Pascal](https://github.com/pascaloliv), [Martin Hochel](https://github.com/hotell), [Frank Li](https://github.com/franklixuefei), [Jessica Franco](https://github.com/Jessidhia), [Saransh Kataria](https://github.com/saranshkataria), [Kanitkorn Sujautra](https://github.com/lukyth), [Sebastian Silbermann](https://github.com/eps1lon), [Kyle Scully](https://github.com/zieka), [Cong Zhang](https://github.com/dancerphil), [Dimitri Mitropoulos](https://github.com/dimitropoulos), [JongChan Choi](https://github.com/disjukr), [Victor Magalhães](https://github.com/vhfmag), [Priyanshu Rav](https://github.com/priyanshurav), [Dmitry Semigradsky](https://github.com/Semigradsky), and [Matt Pocock](https://github.com/mattpocock).
+--- ../code/node_modules/.pnpm/@vitejs+plugin-react@6.0.1_vite@8.0.5_jiti@2.6.1_/node_modules/@vitejs/plugin-react/README.md
+# @vitejs/plugin-react [![npm](https://img.shields.io/npm/v/@vitejs/plugin-react.svg)](https://npmjs.com/package/@vitejs/plugin-react)
+
+The default Vite plugin for React projects.
+
+- enable [Fast Refresh](https://www.npmjs.com/package/react-refresh) in development (requires react >= 16.9)
+- use the [automatic JSX runtime](https://legacy.reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html)
+- small installation size
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+})
+```
+
+## Options
+
+### include
+
+Includes `.js`, `.jsx`, `.ts` & `.tsx` by default. This option can be used to add fast refresh to `.mdx` files:
+
+```js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import mdx from '@mdx-js/rollup'
+
+export default defineConfig({
+  plugins: [
+    { enforce: 'pre', ...mdx() },
+    react({ include: /\.(mdx|js|jsx|ts|tsx)$/ }),
+  ],
+})
+```
+
+### exclude
+
+The default value is `/node_modules/`. You may use it to exclude JSX/TSX files that runs in a worker or are not React files.
+Except if explicitly desired, you should keep `node_modules` in the exclude list:
+
+```js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [
+    react({ exclude: [/\/pdf\//, /\.solid\.tsx$/, /\/node_modules\//] }),
+  ],
+})
+```
+
+### jsxImportSource
+
+Control where the JSX factory is imported from. By default, this is inferred from `jsxImportSource` from corresponding a tsconfig file for a transformed file.
+
+```js
+react({ jsxImportSource: '@emotion/react' })
+```
+
+### jsxRuntime
+
+By default, the plugin uses the [automatic JSX runtime](https://legacy.reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html). However, if you encounter any issues, you may opt out using the `jsxRuntime` option.
+
+```js
+react({ jsxRuntime: 'classic' })
+```
+
+### reactRefreshHost
+
+The `reactRefreshHost` option is only necessary in a module federation context. It enables HMR to work between a remote & host application. In your remote Vite config, you would add your host origin:
+
+```js
+react({ reactRefreshHost: 'http://localhost:3000' })
+```
+
+Under the hood, this simply updates the React Fash Refresh runtime URL from `/@react-refresh` to `http://localhost:3000/@react-refresh` to ensure there is only one Refresh runtime across the whole application. Note that if you define `base` option in the host application, you need to include it in the option, like: `http://localhost:3000/{base}`.
+
+## React Compiler
+
+[React Compiler](https://react.dev/learn/react-compiler) support is available via the exported `reactCompilerPreset` helper, which requires [`@rolldown/plugin-babel`](https://npmx.dev/package/@rolldown/plugin-babel) and [`babel-plugin-react-compiler`](https://npmx.dev/package/babel-plugin-react-compiler) as peer dependencies:
+
+```sh
+npm install -D @rolldown/plugin-babel babel-plugin-react-compiler
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import babel from '@rolldown/plugin-babel'
+
+export default defineConfig({
+  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
+})
+```
+
+The `reactCompilerPreset` accepts an optional options object with the following properties:
+
+- `compilationMode` — Set to `'annotation'` to only compile components annotated with `"use memo"`.
+- `target` — Set to `'17'` or `'18'` to target older React versions (uses `react-compiler-runtime` instead of `react/compiler-runtime`).
+
+```js
+babel({
+  presets: [reactCompilerPreset({ compilationMode: 'annotation' })],
+})
+```
+
+> [!TIP]
+>
+> `reactCompilerPreset` is only a convenient helper with a preconfigured filter. You can configure override the filters to fit your project structure or code. For example, if you know a large portion of your files are never React/hook-related or won't benefit from the React Compiler, you can aggressively exclude them via `rolldown.filter`:
+>
+> ```js
+> const myPreset = reactCompilerPreset()
+> myPreset.rolldown.filter.id.exclude = ['src/legacy/**', 'src/utils/**']
+>
+> babel({
+>   presets: [myPreset],
+> })
+> ```
+
+## `@vitejs/plugin-react/preamble`
+
+The package provides `@vitejs/plugin-react/preamble` to initialize HMR runtime from client entrypoint for SSR applications which don't use [`transformIndexHtml` API](https://vite.dev/guide/api-javascript.html#vitedevserver). For example:
+
+```js
+// [entry.client.js]
+import '@vitejs/plugin-react/preamble'
+```
+
+Alternatively, you can manually call `transformIndexHtml` during SSR, which sets up equivalent initialization code. Here's an example for an Express server:
+
+```js
+app.get('/', async (req, res, next) => {
+  try {
+    let html = fs.readFileSync(path.resolve(root, 'index.html'), 'utf-8')
+
+    // Transform HTML using Vite plugins.
+    html = await viteServer.transformIndexHtml(req.url, html)
+
+    res.send(html)
+  } catch (e) {
+    return next(e)
+  }
+})
+```
+
+Otherwise, you'll get the following error:
+
+```
+Uncaught Error: @vitejs/plugin-react can't detect preamble. Something is wrong.
+```
+
+## Consistent components exports
+
+For React refresh to work correctly, your file should only export React components. You can find a good explanation in the [Gatsby docs](https://www.gatsbyjs.com/docs/reference/local-development/fast-refresh/#how-it-works).
+
+If an incompatible change in exports is found, the module will be invalidated and HMR will propagate. To make it easier to export simple constants alongside your component, the module is only invalidated when their value changes.
+
+You can catch mistakes and get more detailed warnings with this [ESLint rule](https://github.com/ArnaudBarre/eslint-plugin-react-refresh), or the equivalent [Oxlint rule](https://oxc.rs/docs/guide/usage/linter/rules/react/only-export-components.html).
+--- ../code/node_modules/.pnpm/csstype@3.2.3/node_modules/csstype/README.md
+# CSSType
+
+[![npm](https://img.shields.io/npm/v/csstype.svg)](https://www.npmjs.com/package/csstype)
+
+TypeScript and Flow definitions for CSS, generated by [data from MDN](https://github.com/mdn/data). It provides autocompletion and type checking for CSS properties and values.
+
+**TypeScript**
+
+```ts
+import type * as CSS from 'csstype';
+
+const style: CSS.Properties = {
+  colour: 'white', // Type error on property
+  textAlign: 'middle', // Type error on value
+};
+```
+
+**Flow**
+
+```js
+// @flow strict
+import * as CSS from 'csstype';
+
+const style: CSS.Properties<> = {
+  colour: 'white', // Type error on property
+  textAlign: 'middle', // Type error on value
+};
+```
+
+_Further examples below will be in TypeScript!_
+
+## Getting started
+
+```sh
+$ npm install csstype
+```
+
+## Table of content
+
+- [Style types](#style-types)
+- [At-rule types](#at-rule-types)
+- [Pseudo types](#pseudo-types)
+- [Generics](#generics)
+- [Usage](#usage)
+- [What should I do when I get type errors?](#what-should-i-do-when-i-get-type-errors)
+- [Version 3.0](#version-30)
+- [Contributing](#contributing)
+
+## Style types
+
+Properties are categorized in different uses and in several technical variations to provide typings that suits as many as possible.
+
+|                | Default              | `Hyphen`                   | `Fallback`                   | `HyphenFallback`                   |
+| -------------- | -------------------- | -------------------------- | ---------------------------- | ---------------------------------- |
+| **All**        | `Properties`         | `PropertiesHyphen`         | `PropertiesFallback`         | `PropertiesHyphenFallback`         |
+| **`Standard`** | `StandardProperties` | `StandardPropertiesHyphen` | `StandardPropertiesFallback` | `StandardPropertiesHyphenFallback` |
+| **`Vendor`**   | `VendorProperties`   | `VendorPropertiesHyphen`   | `VendorPropertiesFallback`   | `VendorPropertiesHyphenFallback`   |
+| **`Obsolete`** | `ObsoleteProperties` | `ObsoletePropertiesHyphen` | `ObsoletePropertiesFallback` | `ObsoletePropertiesHyphenFallback` |
+| **`Svg`**      | `SvgProperties`      | `SvgPropertiesHyphen`      | `SvgPropertiesFallback`      | `SvgPropertiesHyphenFallback`      |
+
+Categories:
+
+- **All** - Includes `Standard`, `Vendor`, `Obsolete` and `Svg`
+- **`Standard`** - Current properties and extends subcategories `StandardLonghand` and `StandardShorthand` _(e.g. `StandardShorthandProperties`)_
+- **`Vendor`** - Vendor prefixed properties and extends subcategories `VendorLonghand` and `VendorShorthand` _(e.g. `VendorShorthandProperties`)_
+- **`Obsolete`** - Removed or deprecated properties
+- **`Svg`** - SVG-specific properties
+
+Variations:
+
+- **Default** - JavaScript (camel) cased property names
+- **`Hyphen`** - CSS (kebab) cased property names
+- **`Fallback`** - Also accepts array of values e.g. `string | string[]`
+
+## At-rule types
+
+At-rule interfaces with descriptors.
+
+**TypeScript**: These will be found in the `AtRule` namespace, e.g. `AtRule.Viewport`.  
+**Flow**: These will be prefixed with `AtRule$`, e.g. `AtRule$Viewport`.
+
+|                      | Default        | `Hyphen`             | `Fallback`             | `HyphenFallback`             |
+| -------------------- | -------------- | -------------------- | ---------------------- | ---------------------------- |
+| **`@counter-style`** | `CounterStyle` | `CounterStyleHyphen` | `CounterStyleFallback` | `CounterStyleHyphenFallback` |
+| **`@font-face`**     | `FontFace`     | `FontFaceHyphen`     | `FontFaceFallback`     | `FontFaceHyphenFallback`     |
+| **`@viewport`**      | `Viewport`     | `ViewportHyphen`     | `ViewportFallback`     | `ViewportHyphenFallback`     |
+
+## Pseudo types
+
+String literals of pseudo classes and pseudo elements
+
+- `Pseudos`
+
+  Extends:
+  - `AdvancedPseudos`
+
+    Function-like pseudos e.g. `:not(:first-child)`. The string literal contains the value excluding the parenthesis: `:not`. These are separated because they require an argument that results in infinite number of variations.
+
+  - `SimplePseudos`
+
+    Plain pseudos e.g. `:hover` that can only be **one** variation.
+
+## Generics
+
+All interfaces has two optional generic argument to define length and time: `CSS.Properties<TLength = string | 0, TTime = string>`
+
+- **Length** is the first generic parameter and defaults to `string | 0` because `0` is the only [length where the unit identifier is optional](https://drafts.csswg.org/css-values-3/#lengths). You can specify this, e.g. `string | number`, for platforms and libraries that accepts any numeric value as length with a specific unit.
+  ```tsx
+  const style: CSS.Properties<string | number> = {
+    width: 100,
+  };
+  ```
+- **Time** is the second generic argument and defaults to `string`. You can specify this, e.g. `string | number`, for platforms and libraries that accepts any numeric value as length with a specific unit.
+  ```tsx
+  const style: CSS.Properties<string | number, number> = {
+    transitionDuration: 1000,
+  };
+  ```
+
+## Usage
+
+```ts
+import type * as CSS from 'csstype';
+
+const style: CSS.Properties = {
+  width: '10px',
+  margin: '1em',
+};
+```
+
+In some cases, like for CSS-in-JS libraries, an array of values is a way to provide fallback values in CSS. Using `CSS.PropertiesFallback` instead of `CSS.Properties` will add the possibility to use any property value as an array of values.
+
+```ts
+import type * as CSS from 'csstype';
+
+const style: CSS.PropertiesFallback = {
+  display: ['-webkit-flex', 'flex'],
+  color: 'white',
+};
+```
+
+There's even string literals for pseudo selectors and elements.
+
+```ts
+import type * as CSS from 'csstype';
+
+const pseudos: { [P in CSS.SimplePseudos]?: CSS.Properties } = {
+  ':hover': {
+    display: 'flex',
+  },
+};
+```
+
+Hyphen cased (kebab cased) properties are provided in `CSS.PropertiesHyphen` and `CSS.PropertiesHyphenFallback`. It's not **not** added by default in `CSS.Properties`. To allow both of them, you can simply extend with `CSS.PropertiesHyphen` or/and `CSS.PropertiesHyphenFallback`.
+
+```ts
+import type * as CSS from 'csstype';
+
+interface Style extends CSS.Properties, CSS.PropertiesHyphen {}
+
+const style: Style = {
+  'flex-grow': 1,
+  'flex-shrink': 0,
+  'font-weight': 'normal',
+  backgroundColor: 'white',
+};
+```
+
+Adding type checked CSS properties to a `HTMLElement`.
+
+```ts
+import type * as CSS from 'csstype';
+
+const style: CSS.Properties = {
+  color: 'red',
+  margin: '1em',
+};
+
+let button = document.createElement('button');
+
+Object.assign(button.style, style);
+```
+
+## What should I do when I get type errors?
+
+The goal is to have as perfect types as possible and we're trying to do our best. But with CSS Custom Properties, the CSS specification changing frequently and vendors implementing their own specifications with new releases sometimes causes type errors even if it should work. Here's some steps you could take to get it fixed:
+
+_If you're using CSS Custom Properties you can step directly to step 3._
+
+1.  **First of all, make sure you're doing it right.** A type error could also indicate that you're not :wink:
+    - Some CSS specs that some vendors has implemented could have been officially rejected or haven't yet received any official acceptance and are therefor not included
+    - If you're using TypeScript, [type widening](https://blog.mariusschulz.com/2017/02/04/TypeScript-2-1-literal-type-widening) could be the reason you get `Type 'string' is not assignable to...` errors
+
+2.  **Have a look in [issues](https://github.com/frenic/csstype/issues) to see if an issue already has been filed. If not, create a new one.** To help us out, please refer to any information you have found.
+3.  Fix the issue locally with **TypeScript** (Flow further down):
+    - The recommended way is to use **module augmentation**. Here's a few examples:
+
+      ```ts
+      // My css.d.ts file
+      import type * as CSS from 'csstype';
+
+      declare module 'csstype' {
+        interface Properties {
+          // Add a missing property
+          WebkitRocketLauncher?: string;
+
+          // Add a CSS Custom Property
+          '--theme-color'?: 'black' | 'white';
+
+          // Allow namespaced CSS Custom Properties
+          [index: `--theme-${string}`]: any;
+
+          // Allow any CSS Custom Properties
+          [index: `--${string}`]: any;
+
+          // ...or allow any other property
+          [index: string]: any;
+        }
+      }
+      ```
+--- ../code/node_modules/.pnpm/detect-libc@2.1.2/node_modules/detect-libc/README.md
+# detect-libc
+
+Node.js module to detect details of the C standard library (libc)
+implementation provided by a given Linux system.
+
+Currently supports detection of GNU glibc and MUSL libc.
+
+Provides asychronous and synchronous functions for the
+family (e.g. `glibc`, `musl`) and version (e.g. `1.23`, `1.2.3`).
+
+The version numbers of libc implementations
+are not guaranteed to be semver-compliant.
+
+For previous v1.x releases, please see the
+[v1](https://github.com/lovell/detect-libc/tree/v1) branch.
+
+## Install
+
+```sh
+npm install detect-libc
+```
+
+## API
+
+### GLIBC
+
+```ts
+const GLIBC: string = 'glibc';
+```
+
+A String constant containing the value `glibc`.
+
+### MUSL
+
+```ts
+const MUSL: string = 'musl';
+```
+
+A String constant containing the value `musl`.
+
+### family
+
+```ts
+function family(): Promise<string | null>;
+```
+
+Resolves asychronously with:
+
+* `glibc` or `musl` when the libc family can be determined
+* `null` when the libc family cannot be determined
+* `null` when run on a non-Linux platform
+
+```js
+const { family, GLIBC, MUSL } = require('detect-libc');
+
+switch (await family()) {
+  case GLIBC: ...
+  case MUSL: ...
+  case null: ...
+}
+```
+
+### familySync
+
+```ts
+function familySync(): string | null;
+```
+
+Synchronous version of `family()`.
+
+```js
+const { familySync, GLIBC, MUSL } = require('detect-libc');
+
+switch (familySync()) {
+  case GLIBC: ...
+  case MUSL: ...
+  case null: ...
+}
+```
+
+### version
+
+```ts
+function version(): Promise<string | null>;
+```
+
+Resolves asychronously with:
+
+* The version when it can be determined
+* `null` when the libc family cannot be determined
+* `null` when run on a non-Linux platform
+
+```js
+const { version } = require('detect-libc');
+
+const v = await version();
+if (v) {
+  const [major, minor, patch] = v.split('.');
+}
+```
+
+### versionSync
+
+```ts
+function versionSync(): string | null;
+```
+
+Synchronous version of `version()`.
+
+```js
+const { versionSync } = require('detect-libc');
+
+const v = versionSync();
+if (v) {
+  const [major, minor, patch] = v.split('.');
+}
+```
+
+### isNonGlibcLinux
+
+```ts
+function isNonGlibcLinux(): Promise<boolean>;
+```
+
+Resolves asychronously with:
+
+* `false` when the libc family is `glibc`
+* `true` when the libc family is not `glibc`
+* `false` when run on a non-Linux platform
+
+```js
+const { isNonGlibcLinux } = require('detect-libc');
+
+if (await isNonGlibcLinux()) { ... }
+```
+
+### isNonGlibcLinuxSync
+
+```ts
+function isNonGlibcLinuxSync(): boolean;
+```
+
+Synchronous version of `isNonGlibcLinux()`.
+
+```js
+const { isNonGlibcLinuxSync } = require('detect-libc');
+
+if (isNonGlibcLinuxSync()) { ... }
+```
+
+## Licensing
+
+Copyright 2017 Lovell Fuller and others.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+--- ../code/node_modules/.pnpm/enhanced-resolve@5.20.1/node_modules/enhanced-resolve/README.md
+# enhanced-resolve
+
+[![npm][npm]][npm-url]
+[![Build Status][build-status]][build-status-url]
+[![codecov][codecov-badge]][codecov-url]
+[![Install Size][size]][size-url]
+[![GitHub Discussions][discussion]][discussion-url]
+
+Offers an async require.resolve function. It's highly configurable.
+
+## Features
+
+- plugin system
+- provide a custom filesystem
+- sync and async node.js filesystems included
+
+## Getting Started
+
+### Install
+
+```sh
+# npm
+npm install enhanced-resolve
+# or Yarn
+yarn add enhanced-resolve
+```
+
+### Resolve
+
+There is a Node.js API which allows to resolve requests according to the Node.js resolving rules.
+Sync and async APIs are offered. A `create` method allows to create a custom resolve function.
+
+```js
+const resolve = require("enhanced-resolve");
+
+resolve("/some/path/to/folder", "module/dir", (err, result) => {
+	result; // === "/some/path/node_modules/module/dir/index.js"
+});
+
+resolve.sync("/some/path/to/folder", "../../dir");
+// === "/some/path/dir/index.js"
+
+const myResolve = resolve.create({
+	// or resolve.create.sync
+	extensions: [".ts", ".js"],
+	// see more options below
+});
+
+myResolve("/some/path/to/folder", "ts-module", (err, result) => {
+	result; // === "/some/node_modules/ts-module/index.ts"
+});
+```
+
+### Creating a Resolver
+
+The easiest way to create a resolver is to use the `createResolver` function on `ResolveFactory`, along with one of the supplied File System implementations.
+
+```js
+const fs = require("fs");
+const { CachedInputFileSystem, ResolverFactory } = require("enhanced-resolve");
+
+// create a resolver
+const myResolver = ResolverFactory.createResolver({
+	// Typical usage will consume the `fs` + `CachedInputFileSystem`, which wraps Node.js `fs` to add caching.
+	fileSystem: new CachedInputFileSystem(fs, 4000),
+	extensions: [".js", ".json"],
+	/* any other resolver options here. Options/defaults can be seen below */
+});
+
+// resolve a file with the new resolver
+const context = {};
+const lookupStartPath = "/Users/webpack/some/root/dir";
+const request = "./path/to-look-up.js";
+const resolveContext = {};
+myResolver.resolve(
+	context,
+	lookupStartPath,
+	request,
+	resolveContext,
+	(err /* Error */, filepath /* string */) => {
+		// Do something with the path
+	},
+);
+```
+
+#### Resolver Options
+
+| Field               | Default                     | Description                                                                                                                                                                                                                                                                                 |
+| ------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| alias               | []                          | A list of module alias configurations or an object which maps key to value                                                                                                                                                                                                                  |
+| aliasFields         | []                          | A list of alias fields in description files                                                                                                                                                                                                                                                 |
+| extensionAlias      | {}                          | An object which maps extension to extension aliases                                                                                                                                                                                                                                         |
+| cachePredicate      | function() { return true }; | A function which decides whether a request should be cached or not. An object is passed to the function with `path` and `request` properties.                                                                                                                                               |
+| cacheWithContext    | true                        | If unsafe cache is enabled, includes `request.context` in the cache key                                                                                                                                                                                                                     |
+| conditionNames      | []                          | A list of exports field condition names                                                                                                                                                                                                                                                     |
+| descriptionFiles    | ["package.json"]            | A list of description files to read from                                                                                                                                                                                                                                                    |
+| enforceExtension    | false                       | Enforce that a extension from extensions must be used                                                                                                                                                                                                                                       |
+| exportsFields       | ["exports"]                 | A list of exports fields in description files                                                                                                                                                                                                                                               |
+| extensions          | [".js", ".json", ".node"]   | A list of extensions which should be tried for files                                                                                                                                                                                                                                        |
+| fallback            | []                          | Same as `alias`, but only used if default resolving fails                                                                                                                                                                                                                                   |
+| fileSystem          |                             | The file system which should be used                                                                                                                                                                                                                                                        |
+| fullySpecified      | false                       | Request passed to resolve is already fully specified and extensions or main files are not resolved for it (they are still resolved for internal requests)                                                                                                                                   |
+| mainFields          | ["main"]                    | A list of main fields in description files                                                                                                                                                                                                                                                  |
+| mainFiles           | ["index"]                   | A list of main files in directories                                                                                                                                                                                                                                                         |
+| modules             | ["node_modules"]            | A list of directories to resolve modules from, can be absolute path or folder name                                                                                                                                                                                                          |
+| plugins             | []                          | A list of additional resolve plugins which should be applied                                                                                                                                                                                                                                |
+| resolver            | undefined                   | A prepared Resolver to which the plugins are attached                                                                                                                                                                                                                                       |
+| resolveToContext    | false                       | Resolve to a context instead of a file                                                                                                                                                                                                                                                      |
+| preferRelative      | false                       | Prefer to resolve module requests as relative request and fallback to resolving as module                                                                                                                                                                                                   |
+| preferAbsolute      | false                       | Prefer to resolve server-relative urls as absolute paths before falling back to resolve in roots                                                                                                                                                                                            |
+| restrictions        | []                          | A list of resolve restrictions                                                                                                                                                                                                                                                              |
+| roots               | []                          | A list of root paths                                                                                                                                                                                                                                                                        |
+| symlinks            | true                        | Whether to resolve symlinks to their symlinked location                                                                                                                                                                                                                                     |
+| tsconfig            | false                       | TypeScript config for paths mapping. Can be `false` (disabled), `true` (use default `tsconfig.json`), a string path to `tsconfig.json`, or an object with `configFile`, `references`, and `baseUrl` options. Supports JSONC format (comments and trailing commas) like TypeScript compiler. |
+| tsconfig.configFile | tsconfig.json               | Path to the tsconfig.json file                                                                                                                                                                                                                                                              |
+| tsconfig.references | []                          | Project references. `'auto'` to load from tsconfig, or an array of paths to referenced projects                                                                                                                                                                                             |
+| tsconfig.baseUrl    | undefined                   | Override baseUrl from tsconfig.json. If provided, this value will be used instead of the baseUrl in the tsconfig file                                                                                                                                                                       |
+| unsafeCache         | false                       | Use this cache object to unsafely cache the successful requests                                                                                                                                                                                                                             |
+
+## Plugins
+
+Similar to `webpack`, the core of `enhanced-resolve` functionality is implemented as individual plugins that are executed using [`tapable`](https://github.com/webpack/tapable).
+These plugins can extend the functionality of the library, adding other ways for files/contexts to be resolved.
+
+A plugin should be a `class` (or its ES5 equivalent) with an `apply` method. The `apply` method will receive a `resolver` instance, that can be used to hook in to the event system.
+
+### Plugin Boilerplate
+
+```js
+class MyResolverPlugin {
+	constructor(source, target) {
+		this.source = source;
+		this.target = target;
+	}
+
+	apply(resolver) {
+		const target = resolver.ensureHook(this.target);
+		resolver
+			.getHook(this.source)
+			.tapAsync("MyResolverPlugin", (request, resolveContext, callback) => {
+				// Any logic you need to create a new `request` can go here
+				resolver.doResolve(target, request, null, resolveContext, callback);
+			});
+	}
+}
+```
+
+Plugins are executed in a pipeline, and register which event they should be executed before/after. In the example above, `source` is the name of the event that starts the pipeline, and `target` is what event this plugin should fire, which is what continues the execution of the pipeline. For an example of how these different plugin events create a chain, see `lib/ResolverFactory.js`, in the `//// pipeline ////` section.
+
+## Escaping
+
+It's allowed to escape `#` as `\0#` to avoid parsing it as fragment.
+
+enhanced-resolve will try to resolve requests containing `#` as path and as fragment, so it will automatically figure out if `./some#thing` means `.../some.js#thing` or `.../some#thing.js`. When a `#` is resolved as path it will be escaped in the result. Here: `.../some\0#thing.js`.
+
+## Tests
+
+```sh
+npm run test
+```
+
+## Passing options from webpack
+
+If you are using `webpack`, and you want to pass custom options to `enhanced-resolve`, the options are passed from the `resolve` key of your webpack configuration e.g.:
+
+```
+resolve: {
+  extensions: ['.js', '.jsx'],
+  modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+  plugins: [new DirectoryNamedWebpackPlugin()]
+  ...
+},
+```
+
+## License
+
+Copyright (c) 2012-2019 JS Foundation and other contributors
+
+MIT (http://www.opensource.org/licenses/mit-license.php)
+
+[npm]: https://img.shields.io/npm/v/enhanced-resolve.svg
+[npm-url]: https://www.npmjs.com/package/enhanced-resolve
+[build-status]: https://github.com/webpack/enhanced-resolve/actions/workflows/test.yml/badge.svg
+[build-status-url]: https://github.com/webpack/enhanced-resolve/actions
+[codecov-badge]: https://codecov.io/gh/webpack/enhanced-resolve/branch/main/graph/badge.svg?token=6B6NxtsZc3
+[codecov-url]: https://codecov.io/gh/webpack/enhanced-resolve
+[size]: https://packagephobia.com/badge?p=enhanced-resolve
+[size-url]: https://packagephobia.com/result?p=enhanced-resolve
+[discussion]: https://img.shields.io/github/discussions/webpack/webpack
+[discussion-url]: https://github.com/webpack/webpack/discussions
+--- ../code/node_modules/.pnpm/fdir@6.5.0_picomatch@4.0.4/node_modules/fdir/README.md
+<p align="center">
+<img src="https://github.com/thecodrr/fdir/raw/master/assets/fdir.gif" width="75%"/>
+
+<h1 align="center">The Fastest Directory Crawler & Globber for NodeJS</h1>
+<p align="center">
+  <a href="https://www.npmjs.com/package/fdir"><img src="https://img.shields.io/npm/v/fdir?style=for-the-badge"/></a>
+  <a href="https://www.npmjs.com/package/fdir"><img src="https://img.shields.io/npm/dw/fdir?style=for-the-badge"/></a>
+  <a href="https://codeclimate.com/github/thecodrr/fdir/maintainability"><img src="https://img.shields.io/codeclimate/maintainability-percentage/thecodrr/fdir?style=for-the-badge"/></a>
+  <a href="https://coveralls.io/github/thecodrr/fdir?branch=master"><img src="https://img.shields.io/coveralls/github/thecodrr/fdir?style=for-the-badge"/></a>
+  <a href="https://www.npmjs.com/package/fdir"><img src="https://img.shields.io/bundlephobia/minzip/fdir?style=for-the-badge"/></a>
+  <a href="https://www.producthunt.com/posts/fdir-every-millisecond-matters"><img src="https://img.shields.io/badge/ProductHunt-Upvote-red?style=for-the-badge&logo=product-hunt"/></a>
+  <a href="https://dev.to/thecodrr/how-i-wrote-the-fastest-directory-crawler-ever-3p9c"><img src="https://img.shields.io/badge/dev.to-Read%20Blog-black?style=for-the-badge&logo=dev.to"/></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/thecodrr/fdir?style=for-the-badge"/></a>
+</p>
+</p>
+
+⚡ **The Fastest:** Nothing similar (in the NodeJS world) beats `fdir` in speed. It can easily crawl a directory containing **1 million files in < 1 second.**
+
+💡 **Stupidly Easy:** `fdir` uses expressive Builder pattern to build the crawler increasing code readability.
+
+🤖 **Zero Dependencies\*:** `fdir` only uses NodeJS `fs` & `path` modules.
+
+🕺 **Astonishingly Small:** < 2KB in size gzipped & minified.
+
+🖮 **Hackable:** Extending `fdir` is extremely simple now that the new Builder API is here. Feel free to experiment around.
+
+_\* `picomatch` must be installed manually by the user to support globbing._
+
+## 🚄 Quickstart
+
+### Installation
+
+You can install using `npm`:
+
+```sh
+$ npm i fdir
+```
+
+or Yarn:
+
+```sh
+$ yarn add fdir
+```
+
+### Usage
+
+```ts
+import { fdir } from "fdir";
+
+// create the builder
+const api = new fdir().withFullPaths().crawl("path/to/dir");
+
+// get all files in a directory synchronously
+const files = api.sync();
+
+// or asynchronously
+api.withPromise().then((files) => {
+  // do something with the result here.
+});
+```
+
+## Documentation:
+
+Documentation for all methods is available [here](/documentation.md).
+
+## 📊 Benchmarks:
+
+Please check the benchmark against the latest version [here](/BENCHMARKS.md).
+
+## 🙏Used by:
+
+`fdir` is downloaded over 200k+ times a week by projects around the world. Here's a list of some notable projects using `fdir` in production:
+
+> Note: if you think your project should be here, feel free to open an issue. Notable is anything with a considerable amount of GitHub stars.
+
+1. [rollup/plugins](https://github.com/rollup/plugins)
+2. [SuperchupuDev/tinyglobby](https://github.com/SuperchupuDev/tinyglobby)
+3. [pulumi/pulumi](https://github.com/pulumi/pulumi)
+4. [dotenvx/dotenvx](https://github.com/dotenvx/dotenvx)
+5. [mdn/yari](https://github.com/mdn/yari)
+6. [streetwriters/notesnook](https://github.com/streetwriters/notesnook)
+7. [imba/imba](https://github.com/imba/imba)
+8. [moroshko/react-scanner](https://github.com/moroshko/react-scanner)
+9. [netlify/build](https://github.com/netlify/build)
+10. [yassinedoghri/astro-i18next](https://github.com/yassinedoghri/astro-i18next)
+11. [selfrefactor/rambda](https://github.com/selfrefactor/rambda)
+12. [whyboris/Video-Hub-App](https://github.com/whyboris/Video-Hub-App)
+
+## 🦮 LICENSE
+
+Copyright &copy; 2024 Abdullah Atta under MIT. [Read full text here.](https://github.com/thecodrr/fdir/raw/master/LICENSE)
+--- ../code/node_modules/.pnpm/graceful-fs@4.2.11/node_modules/graceful-fs/README.md
+# graceful-fs
+
+graceful-fs functions as a drop-in replacement for the fs module,
+making various improvements.
+
+The improvements are meant to normalize behavior across different
+platforms and environments, and to make filesystem access more
+resilient to errors.
+
+## Improvements over [fs module](https://nodejs.org/api/fs.html)
+
+* Queues up `open` and `readdir` calls, and retries them once
+  something closes if there is an EMFILE error from too many file
+  descriptors.
+* fixes `lchmod` for Node versions prior to 0.6.2.
+* implements `fs.lutimes` if possible. Otherwise it becomes a noop.
+* ignores `EINVAL` and `EPERM` errors in `chown`, `fchown` or
+  `lchown` if the user isn't root.
+* makes `lchmod` and `lchown` become noops, if not available.
+* retries reading a file if `read` results in EAGAIN error.
+
+On Windows, it retries renaming a file for up to one second if `EACCESS`
+or `EPERM` error occurs, likely because antivirus software has locked
+the directory.
+
+## USAGE
+
+```javascript
+// use just like fs
+var fs = require('graceful-fs')
+
+// now go and do stuff with it...
+fs.readFile('some-file-or-whatever', (err, data) => {
+  // Do stuff here.
+})
+```
+
+## Sync methods
+
+This module cannot intercept or handle `EMFILE` or `ENFILE` errors from sync
+methods.  If you use sync methods which open file descriptors then you are
+responsible for dealing with any errors.
+
+This is a known limitation, not a bug.
+
+## Global Patching
+
+If you want to patch the global fs module (or any other fs-like
+module) you can do this:
+
+```javascript
+// Make sure to read the caveat below.
+var realFs = require('fs')
+var gracefulFs = require('graceful-fs')
+gracefulFs.gracefulify(realFs)
+```
+
+This should only ever be done at the top-level application layer, in
+order to delay on EMFILE errors from any fs-using dependencies.  You
+should **not** do this in a library, because it can cause unexpected
+delays in other parts of the program.
+
+## Changes
+
+This module is fairly stable at this point, and used by a lot of
+things.  That being said, because it implements a subtle behavior
+change in a core part of the node API, even modest changes can be
+extremely breaking, and the versioning is thus biased towards
+bumping the major when in doubt.
+
+The main change between major versions has been switching between
+providing a fully-patched `fs` module vs monkey-patching the node core
+builtin, and the approach by which a non-monkey-patched `fs` was
+created.
+
+The goal is to trade `EMFILE` errors for slower fs operations.  So, if
+you try to open a zillion files, rather than crashing, `open`
+operations will be queued up and wait for something else to `close`.
+
+There are advantages to each approach.  Monkey-patching the fs means
+that no `EMFILE` errors can possibly occur anywhere in your
+application, because everything is using the same core `fs` module,
+which is patched.  However, it can also obviously cause undesirable
+side-effects, especially if the module is loaded multiple times.
+
+Implementing a separate-but-identical patched `fs` module is more
+surgical (and doesn't run the risk of patching multiple times), but
+also imposes the challenge of keeping in sync with the core module.
+
+The current approach loads the `fs` module, and then creates a
+lookalike object that has all the same methods, except a few that are
+patched.  It is safe to use in all versions of Node from 0.8 through
+7.0.
+
+### v4
+
+* Do not monkey-patch the fs module.  This module may now be used as a
+  drop-in dep, and users can opt into monkey-patching the fs builtin
+  if their app requires it.
+
+### v3
+
+* Monkey-patch fs, because the eval approach no longer works on recent
+  node.
+* fixed possible type-error throw if rename fails on windows
+* verify that we *never* get EMFILE errors
+* Ignore ENOSYS from chmod/chown
+* clarify that graceful-fs must be used as a drop-in
+
+### v2.1.0
+
+* Use eval rather than monkey-patching fs.
+* readdir: Always sort the results
+* win32: requeue a file if error has an OK status
+
+### v2.0
+
+* A return to monkey patching
+* wrap process.cwd
+
+### v1.1
+
+* wrap readFile
+* Wrap fs.writeFile.
+* readdir protection
+* Don't clobber the fs builtin
+* Handle fs.read EAGAIN errors by trying again
+* Expose the curOpen counter
+* No-op lchown/lchmod if not implemented
+* fs.rename patch only for win32
+* Patch fs.rename to handle AV software on Windows
+* Close #4 Chown should not fail on einval or eperm if non-root
+* Fix isaacs/fstream#1 Only wrap fs one time
+* Fix #3 Start at 1024 max files, then back off on EMFILE
+* lutimes that doens't blow up on Linux
+* A full on-rewrite using a queue instead of just swallowing the EMFILE error
+* Wrap Read/Write streams as well
+
+### 1.0
+
+* Update engines for node 0.6
+* Be lstat-graceful on Windows
+* first
+--- ../code/node_modules/.pnpm/jiti@2.6.1/node_modules/jiti/README.md
+# jiti
+
+<!-- automd:badges color=F0DB4F bundlephobia -->
+
+[![npm version](https://img.shields.io/npm/v/jiti?color=F0DB4F)](https://npmjs.com/package/jiti)
+[![npm downloads](https://img.shields.io/npm/dm/jiti?color=F0DB4F)](https://npmjs.com/package/jiti)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/jiti?color=F0DB4F)](https://bundlephobia.com/package/jiti)
+
+<!-- /automd -->
+
+> This is the active development branch. Check out [jiti/v1](https://github.com/unjs/jiti/tree/v1) for legacy v1 docs and code.
+
+## 🌟 Used in
+
+[Docusaurus](https://docusaurus.io/), [ESLint](https://github.com/eslint/eslint), [FormKit](https://formkit.com/), [Histoire](https://histoire.dev/), [Knip](https://knip.dev/), [Nitro](https://nitro.unjs.io/), [Nuxt](https://nuxt.com/), [PostCSS loader](https://github.com/webpack-contrib/postcss-loader), [Rsbuild](https://rsbuild.dev/), [Size Limit](https://github.com/ai/size-limit), [Slidev](https://sli.dev/), [Tailwindcss](https://tailwindcss.com/), [Tokenami](https://github.com/tokenami/tokenami), [UnoCSS](https://unocss.dev/), [WXT](https://wxt.dev/), [Winglang](https://www.winglang.io/), [Graphql code generator](https://the-guild.dev/graphql/codegen), [Lingui](https://lingui.dev/), [Scaffdog](https://scaff.dog/), [Storybook](https://storybook.js.org), [...UnJS ecosystem](https://unjs.io/), [...60M+ npm monthly downloads](https://npm.chart.dev/jiti), [...6M+ public repositories](https://github.com/unjs/jiti/network/dependents).
+
+## ✅ Features
+
+- Seamless TypeScript and ESM syntax support for Node.js
+- Seamless interoperability between ESM and CommonJS
+- Asynchronous API to replace `import()`
+- Synchronous API to replace `require()` (deprecated)
+- Super slim and zero dependency
+- Custom resolve aliases
+- Smart syntax detection to avoid extra transforms
+- Node.js native `require.cache` integration
+- Filesystem transpile with hard disk caches
+- ESM Loader support
+- JSX support (opt-in)
+
+> [!IMPORTANT]
+> To enhance compatibility, jiti `>=2.1` enabled [`interopDefault`](#interopdefault) using a new Proxy method. If you migrated to `2.0.0` earlier, this might have caused behavior changes. In case of any issues during the upgrade, please [report](https://github.com/unjs/jiti/issues) so we can investigate to solve them. 🙏🏼
+
+## 💡 Usage
+
+### CLI
+
+You can use `jiti` CLI to quickly run any script with TypeScript and native ESM support!
+
+```bash
+npx jiti ./index.ts
+```
+
+### Programmatic
+
+Initialize a jiti instance:
+
+```js
+// ESM
+import { createJiti } from "jiti";
+const jiti = createJiti(import.meta.url);
+
+// CommonJS (deprecated)
+const { createJiti } = require("jiti");
+const jiti = createJiti(__filename);
+```
+
+Import (async) and resolve with ESM compatibility:
+
+```js
+// jiti.import(id) is similar to import(id)
+const mod = await jiti.import("./path/to/file.ts");
+
+// jiti.esmResolve(id) is similar to import.meta.resolve(id)
+const resolvedPath = jiti.esmResolve("./src");
+```
+
+If you need the default export of module, you can use `jiti.import(id, { default: true })` as shortcut to `mod?.default ?? mod`.
+
+```js
+// shortcut to mod?.default ?? mod
+const modDefault = await jiti.import("./path/to/file.ts", { default: true });
+```
+
+CommonJS (sync & deprecated):
+
+```js
+// jiti() is similar to require(id)
+const mod = jiti("./path/to/file.ts");
+
+// jiti.resolve() is similar to require.resolve(id)
+const resolvedPath = jiti.resolve("./src");
+```
+
+You can also pass options as the second argument:
+
+```js
+const jiti = createJiti(import.meta.url, { debug: true });
+```
+
+### Register global ESM loader
+
+You can globally register jiti using [global hooks](https://nodejs.org/api/module.html#initialize). (Important: Requires Node.js > 20)
+
+```js
+import "jiti/register";
+```
+
+Or:
+
+```bash
+node --import jiti/register index.ts
+```
+
+## 🎈 `jiti/native`
+
+You can alias `jiti` to `jiti/native` to directly depend on runtime's [`import.meta.resolve`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import.meta/resolve) and dynamic [`import()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) support. This allows easing up the ecosystem transition to runtime native support by giving the same API of jiti.
+
+## ⚙️ Options
+
+### `debug`
+
+- Type: Boolean
+- Default: `false`
+- Environment variable: `JITI_DEBUG`
+
+Enable verbose logging. You can use `JITI_DEBUG=1 <your command>` to enable it.
+
+### `fsCache`
+
+- Type: Boolean | String
+- Default: `true`
+- Environment variable: `JITI_FS_CACHE`
+
+Filesystem source cache (enabled by default)
+
+By default (when is `true`), jiti uses `node_modules/.cache/jiti` (if exists) or `{TMP_DIR}/jiti`.
+
+**Note:** It is recommended that this option be enabled for better performance.
+
+### `rebuildFsCache`
+
+- Type: Boolean
+- Default: `false`
+- Environment variable: `JITI_REBUILD_FS_CACHE`
+
+Rebuild filesystem source cache created by `fsCache`.
+
+### `moduleCache`
+
+- Type: String
+- Default: `true`
+- Environment variable: `JITI_MODULE_CACHE`
+
+Runtime module cache (enabled by default).
+
+Disabling allows editing code and importing the same module multiple times.
+
+When enabled, jiti integrates with Node.js native CommonJS cache-store.
+
+### `transform`
+
+- Type: Function
+- Default: Babel (lazy loaded)
+
+Transform function. See [src/babel](./src/babel.ts) for more details
+
+### `sourceMaps`
+
+- Type: Boolean
+- Default `false`
+- Environment variable: `JITI_SOURCE_MAPS`
+
+Add inline source map to transformed source for better debugging.
+
+### `interopDefault`
+
+- Type: Boolean
+- Default: `true`
+- Environment variable: `JITI_INTEROP_DEFAULT`
+
+Jiti combines module exports with the `default` export using an internal Proxy to improve compatibility with mixed CJS/ESM usage. You can check the current implementation [here](https://github.com/unjs/jiti/blob/main/src/utils.ts#L105).
+
+### `alias`
+
+- Type: Object
+- Default: -
+- Environment variable: `JITI_ALIAS`
+
+You can also pass an object to the environment variable for inline config. Example: `JITI_ALIAS='{"~/*": "./src/*"}' jiti ...`.
+
+Custom alias map used to resolve IDs.
+
+### `nativeModules`
+
+- Type: Array
+- Default: ['typescript']
+- Environment variable: `JITI_NATIVE_MODULES`
+
+List of modules (within `node_modules`) to always use native `require()` for them.
+
+### `transformModules`
+
+- Type: Array
+- Default: []
+- Environment variable: `JITI_TRANSFORM_MODULES`
+
+List of modules (within `node_modules`) to transform them regardless of syntax.
+
+### `importMeta`
+
+Parent module's [`import.meta`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import.meta) context to use for ESM resolution. (only used for `jiti/native` import).
+
+### `tryNative`
+
+- Type: Boolean
+- Default: Enabled if bun is detected
+- Environment variable: `JITI_TRY_NATIVE`
+
+Try to use native require and import without jiti transformations first.
+
+### `jsx`
+
+- Type: Boolean | {options}
+- Default: `false`
+- Environment Variable: `JITI_JSX`
+
+Enable JSX support using [`@babel/plugin-transform-react-jsx`](https://babeljs.io/docs/babel-plugin-transform-react-jsx).
+
+See [`test/fixtures/jsx`](./test/fixtures/jsx) for framework integration examples.
+--- ../code/node_modules/.pnpm/lightningcss-linux-x64-gnu@1.32.0/node_modules/lightningcss-linux-x64-gnu/README.md
+This is the x86_64-unknown-linux-gnu build of lightningcss. See https://github.com/parcel-bundler/lightningcss for details.--- ../code/node_modules/.pnpm/lightningcss-linux-x64-musl@1.32.0/node_modules/lightningcss-linux-x64-musl/README.md
+This is the x86_64-unknown-linux-musl build of lightningcss. See https://github.com/parcel-bundler/lightningcss for details.--- ../code/node_modules/.pnpm/lightningcss@1.32.0/node_modules/lightningcss/README.md
+# ⚡️ Lightning CSS
+
+An extremely fast CSS parser, transformer, and minifier written in Rust. Use it with [Parcel](https://parceljs.org), as a standalone library or CLI, or via a plugin with any other tool.
+
+<img width="680" alt="performance and build size charts" src="https://user-images.githubusercontent.com/19409/189022599-28246659-f94a-46a4-9de0-b6d17adb0e22.png#gh-light-mode-only">
+<img width="680" alt="performance and build size charts" src="https://user-images.githubusercontent.com/19409/189022693-6956b044-422b-4f56-9628-d59c6f791095.png#gh-dark-mode-only">
+
+## Features
+
+- **Extremely fast** – Parsing and minifying large files is completed in milliseconds, often with significantly smaller output than other tools. See [benchmarks](#benchmarks) below.
+- **Typed property values** – many other CSS parsers treat property values as an untyped series of tokens. This means that each transformer that wants to do something with these values must interpret them itself, leading to duplicate work and inconsistencies. Lightning CSS parses all values using the grammar from the CSS specification, and exposes a specific value type for each property.
+- **Browser-grade parser** – Lightning CSS is built on the [cssparser](https://github.com/servo/rust-cssparser) and [selectors](https://github.com/servo/stylo/tree/main/selectors) crates created by Mozilla and used by Firefox and Servo. These provide a solid general purpose CSS-parsing foundation on top of which Lightning CSS implements support for all specific CSS rules and properties.
+- **Minification** – One of the main purposes of Lightning CSS is to minify CSS to make it smaller. This includes many optimizations including:
+  - Combining longhand properties into shorthands where possible.
+  - Merging adjacent rules with the same selectors or declarations when it is safe to do so.
+  - Combining CSS transforms into a single matrix or vice versa when smaller.
+  - Removing vendor prefixes that are not needed, based on the provided browser targets.
+  - Reducing `calc()` expressions where possible.
+  - Converting colors to shorter hex notation where possible.
+  - Minifying gradients.
+  - Minifying CSS grid templates.
+  - Normalizing property value order.
+  - Removing default property sub-values which will be inferred by browsers.
+  - Many micro-optimizations, e.g. converting to shorter units, removing unnecessary quotation marks, etc.
+- **Vendor prefixing** – Lightning CSS accepts a list of browser targets, and automatically adds (and removes) vendor prefixes.
+- **Browserslist configuration** – Lightning CSS supports opt-in browserslist configuration discovery to resolve browser targets and integrate with your existing tools and config setup.
+- **Syntax lowering** – Lightning CSS parses modern CSS syntax, and generates more compatible output where needed, based on browser targets.
+  - CSS Nesting
+  - Custom media queries (draft spec)
+  - Logical properties
+  * [Color Level 5](https://drafts.csswg.org/css-color-5/)
+    - `color-mix()` function
+    - Relative color syntax, e.g. `lab(from purple calc(l * .8) a b)`
+  - [Color Level 4](https://drafts.csswg.org/css-color-4/)
+    - `lab()`, `lch()`, `oklab()`, and `oklch()` colors
+    - `color()` function supporting predefined color spaces such as `display-p3` and `xyz`
+    - Space separated components in `rgb` and `hsl` functions
+    - Hex with alpha syntax
+    - `hwb()` color syntax
+    - Percent syntax for opacity
+    - `#rgba` and `#rrggbbaa` hex colors
+  - Selectors
+    - `:not` with multiple arguments
+    - `:lang` with multiple arguments
+    - `:dir`
+    - `:is`
+  - Double position gradient stops (e.g. `red 40% 80%`)
+  - `clamp()`, `round()`, `rem()`, and `mod()` math functions
+  - Alignment shorthands (e.g. `place-items`)
+  - Two-value `overflow` shorthand
+  - Media query range syntax (e.g. `@media (width <= 100px)` or `@media (100px < width < 500px)`)
+  - Multi-value `display` property (e.g. `inline flex`)
+  - `system-ui` font family fallbacks
+- **CSS modules** – Lightning CSS supports compiling a subset of [CSS modules](https://github.com/css-modules/css-modules) features.
+  - Locally scoped class and id selectors
+  - Locally scoped custom identifiers, e.g. `@keyframes` names, grid lines/areas, `@counter-style` names, etc.
+  - Opt-in support for locally scoped CSS variables and other dashed identifiers.
+  - `:local()` and `:global()` selectors
+  - The `composes` property
+- **Custom transforms** – The Lightning CSS visitor API can be used to implement custom transform plugins.
+
+## Documentation
+
+Lightning CSS can be used from [Parcel](https://parceljs.org), as a standalone library from JavaScript or Rust, using a standalone CLI, or wrapped as a plugin within any other tool. See the [Lightning CSS website](https://lightningcss.dev/docs.html) for documentation.
+
+## Benchmarks
+
+<img width="680" alt="performance and build size charts" src="https://user-images.githubusercontent.com/19409/189022599-28246659-f94a-46a4-9de0-b6d17adb0e22.png#gh-light-mode-only">
+<img width="680" alt="performance and build size charts" src="https://user-images.githubusercontent.com/19409/189022693-6956b044-422b-4f56-9628-d59c6f791095.png#gh-dark-mode-only">
+
+```
+$ node bench.js bootstrap-4.css
+cssnano: 544.809ms
+159636 bytes
+
+esbuild: 17.199ms
+160332 bytes
+
+lightningcss: 4.16ms
+143091 bytes
+
+
+$ node bench.js animate.css
+cssnano: 283.105ms
+71723 bytes
+
+esbuild: 11.858ms
+72183 bytes
+
+lightningcss: 1.973ms
+23666 bytes
+
+
+$ node bench.js tailwind.css
+cssnano: 2.198s
+1925626 bytes
+
+esbuild: 107.668ms
+1961642 bytes
+
+lightningcss: 43.368ms
+1824130 bytes
+```
+
+For more benchmarks comparing more tools and input, see [here](http://goalsmashers.github.io/css-minification-benchmark/). Note that some of the tools shown perform unsafe optimizations that may change the behavior of the original CSS in favor of smaller file size. Lightning CSS does not do this – the output CSS should always behave identically to the input. Keep this in mind when comparing file sizes between tools.
+--- ../code/node_modules/.pnpm/magic-string@0.30.21/node_modules/magic-string/README.md
+# magic-string
+
+<a href="https://github.com/Rich-Harris/magic-string/actions/workflows/test.yml">
+  <img src="https://img.shields.io/github/actions/workflow/status/Rich-Harris/magic-string/test.yml"
+       alt="build status">
+</a>
+<a href="https://npmjs.org/package/magic-string">
+  <img src="https://img.shields.io/npm/v/magic-string.svg"
+       alt="npm version">
+</a>
+<a href="https://github.com/Rich-Harris/magic-string/blob/master/LICENSE.md">
+  <img src="https://img.shields.io/npm/l/magic-string.svg"
+       alt="license">
+</a>
+
+Suppose you have some source code. You want to make some light modifications to it - replacing a few characters here and there, wrapping it with a header and footer, etc - and ideally you'd like to generate a [source map](https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/) at the end of it. You've thought about using something like [recast](https://github.com/benjamn/recast) (which allows you to generate an AST from some JavaScript, manipulate it, and reprint it with a sourcemap without losing your comments and formatting), but it seems like overkill for your needs (or maybe the source code isn't JavaScript).
+
+Your requirements are, frankly, rather niche. But they're requirements that I also have, and for which I made magic-string. It's a small, fast utility for manipulating strings and generating sourcemaps.
+
+## Installation
+
+magic-string works in both node.js and browser environments. For node, install with npm:
+
+```bash
+npm i magic-string
+```
+
+To use in browser, grab the [magic-string.umd.js](https://unpkg.com/magic-string/dist/magic-string.umd.js) file and add it to your page:
+
+```html
+<script src="magic-string.umd.js"></script>
+```
+
+(It also works with various module systems, if you prefer that sort of thing - it has a dependency on [vlq](https://github.com/Rich-Harris/vlq).)
+
+## Usage
+
+These examples assume you're in node.js, or something similar:
+
+```js
+import MagicString from 'magic-string';
+import fs from 'fs';
+
+const s = new MagicString('problems = 99');
+
+s.update(0, 8, 'answer');
+s.toString(); // 'answer = 99'
+
+s.update(11, 13, '42'); // character indices always refer to the original string
+s.toString(); // 'answer = 42'
+
+s.prepend('var ').append(';'); // most methods are chainable
+s.toString(); // 'var answer = 42;'
+
+const map = s.generateMap({
+	source: 'source.js',
+	file: 'converted.js.map',
+	includeContent: true,
+}); // generates a v3 sourcemap
+
+fs.writeFileSync('converted.js', s.toString());
+fs.writeFileSync('converted.js.map', map.toString());
+```
+
+You can pass an options argument:
+
+```js
+const s = new MagicString(someCode, {
+	// these options will be used if you later call `bundle.addSource( s )` - see below
+	filename: 'foo.js',
+	indentExclusionRanges: [
+		/*...*/
+	],
+	// mark source as ignore in DevTools, see below #Bundling
+	ignoreList: false,
+	// adjust the incoming position - see below
+	offset: 0,
+});
+```
+
+## Properties
+
+### s.offset
+
+Sets the offset property to adjust the incoming position for the following APIs: `slice`, `update`, `overwrite`, `appendLeft`, `prependLeft`, `appendRight`, `prependRight`, `move`, `reset`, and `remove`.
+
+Example usage:
+
+```ts
+const s = new MagicString('hello world', { offset: 0 });
+s.offset = 6;
+s.slice() === 'world';
+```
+
+## Methods
+
+### s.addSourcemapLocation( index )
+
+Adds the specified character index (with respect to the original string) to sourcemap mappings, if `hires` is `false` (see below).
+
+### s.append( content )
+
+Appends the specified content to the end of the string. Returns `this`.
+
+### s.appendLeft( index, content )
+
+Appends the specified `content` at the `index` in the original string. If a range _ending_ with `index` is subsequently moved, the insert will be moved with it. Returns `this`. See also `s.prependLeft(...)`.
+
+### s.appendRight( index, content )
+
+Appends the specified `content` at the `index` in the original string. If a range _starting_ with `index` is subsequently moved, the insert will be moved with it. Returns `this`. See also `s.prependRight(...)`.
+
+### s.clone()
+
+Does what you'd expect.
+
+### s.generateDecodedMap( options )
+
+Generates a sourcemap object with raw mappings in array form, rather than encoded as a string. See `generateMap` documentation below for options details. Useful if you need to manipulate the sourcemap further, but most of the time you will use `generateMap` instead.
+
+### s.generateMap( options )
+
+Generates a [version 3 sourcemap](https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit). All options are, well, optional:
+
+- `file` - the filename where you plan to write the sourcemap
+- `source` - the filename of the file containing the original source
+- `includeContent` - whether to include the original content in the map's `sourcesContent` array
+- `hires` - whether the mapping should be high-resolution. Hi-res mappings map every single character, meaning (for example) your devtools will always be able to pinpoint the exact location of function calls and so on. With lo-res mappings, devtools may only be able to identify the correct line - but they're quicker to generate and less bulky. You can also set `"boundary"` to generate a semi-hi-res mappings segmented per word boundary instead of per character, suitable for string semantics that are separated by words. If sourcemap locations have been specified with `s.addSourcemapLocation()`, they will be used here.
+
+The returned sourcemap has two (non-enumerable) methods attached for convenience:
+
+- `toString` - returns the equivalent of `JSON.stringify(map)`
+- `toUrl` - returns a DataURI containing the sourcemap. Useful for doing this sort of thing:
+
+```js
+code += '\n//# sourceMappingURL=' + map.toUrl();
+```
+
+### s.hasChanged()
+
+Indicates if the string has been changed.
+
+### s.indent( prefix[, options] )
+
+Prefixes each line of the string with `prefix`. If `prefix` is not supplied, the indentation will be guessed from the original content, falling back to a single tab character. Returns `this`.
+
+The `options` argument can have an `exclude` property, which is an array of `[start, end]` character ranges. These ranges will be excluded from the indentation - useful for (e.g.) multiline strings.
+
+### s.insertLeft( index, content )
+
+**DEPRECATED** since 0.17 – use `s.appendLeft(...)` instead
+
+### s.insertRight( index, content )
+
+**DEPRECATED** since 0.17 – use `s.prependRight(...)` instead
+
+### s.isEmpty()
+
+Returns true if the resulting source is empty (disregarding white space).
+
+### s.locate( index )
+
+**DEPRECATED** since 0.10 – see [#30](https://github.com/Rich-Harris/magic-string/pull/30)
+
+### s.locateOrigin( index )
+
+**DEPRECATED** since 0.10 – see [#30](https://github.com/Rich-Harris/magic-string/pull/30)
+
+### s.move( start, end, index )
+
+Moves the characters from `start` and `end` to `index`. Returns `this`.
+
+### s.overwrite( start, end, content[, options] )
+
+Replaces the characters from `start` to `end` with `content`, along with the appended/prepended content in that range. The same restrictions as `s.remove()` apply. Returns `this`.
+
+The fourth argument is optional. It can have a `storeName` property — if `true`, the original name will be stored for later inclusion in a sourcemap's `names` array — and a `contentOnly` property which determines whether only the content is overwritten, or anything that was appended/prepended to the range as well.
+
+It may be preferred to use `s.update(...)` instead if you wish to avoid overwriting the appended/prepended content.
+
+### s.prepend( content )
+
+Prepends the string with the specified content. Returns `this`.
+
+### s.prependLeft ( index, content )
+
+Same as `s.appendLeft(...)`, except that the inserted content will go _before_ any previous appends or prepends at `index`
+
+### s.prependRight ( index, content )
+
+Same as `s.appendRight(...)`, except that the inserted content will go _before_ any previous appends or prepends at `index`
+
+### s.replace( regexpOrString, substitution )
+
+String replacement with RegExp or string. The `substitution` parameter supports strings and functions. Returns `this`.
+
+```ts
+import MagicString from 'magic-string';
+
+const s = new MagicString(source);
+
+s.replace('foo', 'bar');
+s.replace('foo', (str, index, s) => str + '-' + index);
+s.replace(/foo/g, 'bar');
+s.replace(/(\w)(\d+)/g, (_, $1, $2) => $1.toUpperCase() + $2);
+```
+
+The differences from [`String.replace`](<(https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace)>):
+
+- It will always match against the **original string**
+- It mutates the magic string state (use `.clone()` to be immutable)
+
+### s.replaceAll( regexpOrString, substitution )
+
+Same as `s.replace`, but replace all matched strings instead of just one.
+If `regexpOrString` is a regex, then it must have the global (`g`) flag set, or a `TypeError` is thrown. Matches the behavior of the builtin [`String.property.replaceAll`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replaceAll). Returns `this`.
+
+### s.remove( start, end )
+
+Removes the characters from `start` to `end` (of the original string, **not** the generated string). Removing the same content twice, or making removals that partially overlap, will cause an error. Returns `this`.
+--- ../code/node_modules/.pnpm/nanoid@3.3.19/node_modules/nanoid/README.md
+# Nano ID
+
+<img src="https://ai.github.io/nanoid/logo.svg" align="right"
+     alt="Nano ID logo by Anton Lovchikov" width="180" height="94">
+
+**English** | [Русский](./README.ru.md) | [简体中文](./README.zh-CN.md) | [Bahasa Indonesia](./README.id-ID.md)
+
+A tiny, secure, URL-friendly, unique string ID generator for JavaScript.
+
+> “An amazing level of senseless perfectionism,
+> which is simply impossible not to respect.”
+
+* **Small.** 130 bytes (minified and gzipped). No dependencies.
+  [Size Limit] controls the size.
+* **Fast.** It is 2 times faster than UUID.
+* **Safe.** It uses hardware random generator. Can be used in clusters.
+* **Short IDs.** It uses a larger alphabet than UUID (`A-Za-z0-9_-`).
+  So ID size was reduced from 36 to 21 symbols.
+* **Portable.** Nano ID was ported
+  to [20 programming languages](#other-programming-languages).
+
+```js
+import { nanoid } from 'nanoid'
+model.id = nanoid() //=> "V1StGXR8_Z5jdHi6B-myT"
+```
+
+Supports modern browsers, IE [with Babel], Node.js and React Native.
+
+[online tool]: https://gitpod.io/#https://github.com/ai/nanoid/
+[with Babel]:  https://developer.epages.com/blog/coding/how-to-transpile-node-modules-with-babel-and-webpack-in-a-monorepo/
+[Size Limit]:  https://github.com/ai/size-limit
+
+<a href="https://evilmartians.com/?utm_source=nanoid">
+  <img src="https://evilmartians.com/badges/sponsored-by-evil-martians.svg"
+       alt="Sponsored by Evil Martians" width="236" height="54">
+</a>
+
+## Docs
+Read full docs **[here](https://github.com/ai/nanoid#readme)**.
+--- ../code/node_modules/.pnpm/oxfmt@0.2.0/node_modules/oxfmt/README.md
+<p align="center">
+  <img alt="OXC Logo" src="https://raw.githubusercontent.com/oxc-project/oxc-assets/main/preview-universal.png" width="600">
+</p>
+
+<div align="center">
+
+[![MIT licensed][license-badge]][license-url]
+[![Build Status][ci-badge]][ci-url]
+[![Code Coverage][code-coverage-badge]][code-coverage-url]
+[![Sponsors][sponsors-badge]][sponsors-url]
+
+[![Discord chat][discord-badge]][discord-url]
+[![Playground][playground-badge]][playground-url]
+
+[discord-badge]: https://img.shields.io/discord/1079625926024900739?logo=discord&label=Discord
+[discord-url]: https://discord.gg/9uXCAwqQZW
+[license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[license-url]: https://github.com/oxc-project/oxc/blob/main/LICENSE
+[ci-badge]: https://github.com/oxc-project/oxc/actions/workflows/ci.yml/badge.svg?event=push&branch=main
+[ci-url]: https://github.com/oxc-project/oxc/actions/workflows/ci.yml?query=event%3Apush+branch%3Amain
+[npm-badge]: https://img.shields.io/npm/v/oxfmt/latest?color=brightgreen
+[npm-url]: https://www.npmjs.com/package/oxfmt/v/latest
+[code-size-badge]: https://img.shields.io/github/languages/code-size/oxc-project/oxc
+[code-size-url]: https://github.com/oxc-project/oxc
+[code-coverage-badge]: https://codecov.io/github/oxc-project/oxc/branch/main/graph/badge.svg
+[code-coverage-url]: https://codecov.io/gh/oxc-project/oxc
+[sponsors-badge]: https://img.shields.io/github/sponsors/Boshen
+[sponsors-url]: https://github.com/sponsors/Boshen
+[playground-badge]: https://img.shields.io/badge/Playground-blue?color=9BE4E0
+[playground-url]: https://oxc-playground.netlify.app
+
+</div>
+
+# ⚓ Oxc
+
+The Oxidation Compiler is creating a suite of high-performance tools for JavaScript and TypeScript.
+
+## Oxfmt
+
+This is the formatter for oxc.
+--- ../code/node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/README.md
+# picocolors
+
+The tiniest and the fastest library for terminal output formatting with ANSI colors.
+
+```javascript
+import pc from "picocolors"
+
+console.log(
+  pc.green(`How are ${pc.italic(`you`)} doing?`)
+)
+```
+
+- **No dependencies.**
+- **14 times** smaller and **2 times** faster than chalk.
+- Used by popular tools like PostCSS, SVGO, Stylelint, and Browserslist.
+- Node.js v6+ & browsers support. Support for both CJS and ESM projects.
+- TypeScript type declarations included.
+- [`NO_COLOR`](https://no-color.org/) friendly.
+
+## Docs
+Read **[full docs](https://github.com/alexeyraspopov/picocolors#readme)** on GitHub.
+--- ../code/node_modules/.pnpm/picomatch@4.0.4/node_modules/picomatch/README.md
+<h1 align="center">Picomatch</h1>
+
+<p align="center">
+<a href="https://npmjs.org/package/picomatch">
+<img src="https://img.shields.io/npm/v/picomatch.svg" alt="version">
+</a>
+<a href="https://github.com/micromatch/picomatch/actions?workflow=Tests">
+<img src="https://github.com/micromatch/picomatch/workflows/Tests/badge.svg" alt="test status">
+</a>
+<a href="https://coveralls.io/github/micromatch/picomatch">
+<img src="https://img.shields.io/coveralls/github/micromatch/picomatch/master.svg" alt="coverage status">
+</a>
+<a href="https://npmjs.org/package/picomatch">
+<img src="https://img.shields.io/npm/dm/picomatch.svg" alt="downloads">
+</a>
+</p>
+
+<br>
+<br>
+
+<p align="center">
+<strong>Blazing fast and accurate glob matcher written in JavaScript.</strong></br>
+<em>No dependencies and full support for standard and extended Bash glob features, including braces, extglobs, POSIX brackets, and regular expressions.</em>
+</p>
+
+<br>
+<br>
+
+## Why picomatch?
+
+* **Lightweight** - No dependencies
+* **Minimal** - Tiny API surface. Main export is a function that takes a glob pattern and returns a matcher function.
+* **Fast** - Loads in about 2ms (that's several times faster than a [single frame of a HD movie](http://www.endmemo.com/sconvert/framespersecondframespermillisecond.php) at 60fps)
+* **Performant** - Use the returned matcher function to speed up repeat matching (like when watching files)
+* **Accurate matching** - Using wildcards (`*` and `?`), globstars (`**`) for nested directories, [advanced globbing](#advanced-globbing) with extglobs, braces, and POSIX brackets, and support for escaping special characters with `\` or quotes.
+* **Well tested** - Thousands of unit tests
+
+See the [library comparison](#library-comparisons) to other libraries.
+
+<br>
+<br>
+
+## Table of Contents
+
+<details><summary> Click to expand </summary>
+
+- [Install](#install)
+- [Usage](#usage)
+- [API](#api)
+  * [picomatch](#picomatch)
+  * [.test](#test)
+  * [.matchBase](#matchbase)
+  * [.isMatch](#ismatch)
+  * [.parse](#parse)
+  * [.scan](#scan)
+  * [.compileRe](#compilere)
+  * [.makeRe](#makere)
+  * [.toRegex](#toregex)
+- [Options](#options)
+  * [Picomatch options](#picomatch-options)
+  * [Scan Options](#scan-options)
+  * [Options Examples](#options-examples)
+- [Globbing features](#globbing-features)
+  * [Basic globbing](#basic-globbing)
+  * [Advanced globbing](#advanced-globbing)
+  * [Braces](#braces)
+  * [Matching special characters as literals](#matching-special-characters-as-literals)
+- [Library Comparisons](#library-comparisons)
+- [Benchmarks](#benchmarks)
+- [Philosophies](#philosophies)
+- [About](#about)
+  * [Author](#author)
+  * [License](#license)
+
+_(TOC generated by [verb](https://github.com/verbose/verb) using [markdown-toc](https://github.com/jonschlinkert/markdown-toc))_
+
+</details>
+
+<br>
+<br>
+
+## Install
+
+Install with [npm](https://www.npmjs.com/):
+
+```sh
+npm install --save picomatch
+```
+
+<br>
+
+## Usage
+
+The main export is a function that takes a glob pattern and an options object and returns a function for matching strings.
+
+```js
+const pm = require('picomatch');
+const isMatch = pm('*.js');
+
+console.log(isMatch('abcd')); //=> false
+console.log(isMatch('a.js')); //=> true
+console.log(isMatch('a.md')); //=> false
+console.log(isMatch('a/b.js')); //=> false
+```
+
+<br>
+
+## API
+
+### [picomatch](lib/picomatch.js#L31)
+
+Creates a matcher function from one or more glob patterns. The returned function takes a string to match as its first argument, and returns true if the string is a match. The returned matcher function also takes a boolean as the second argument that, when true, returns an object with additional information.
+
+**Params**
+
+* `globs` **{String|Array}**: One or more glob patterns.
+* `options` **{Object=}**
+* `returns` **{Function=}**: Returns a matcher function.
+
+**Example**
+
+```js
+const picomatch = require('picomatch');
+// picomatch(glob[, options]);
+
+const isMatch = picomatch('*.!(*a)');
+console.log(isMatch('a.a')); //=> false
+console.log(isMatch('a.b')); //=> true
+```
+
+**Example without node.js**
+
+For environments without `node.js`, `picomatch/posix` provides you a dependency-free matcher, without automatic OS detection.
+
+```js
+const picomatch = require('picomatch/posix');
+// the same API, defaulting to posix paths
+const isMatch = picomatch('a/*');
+console.log(isMatch('a\\b')); //=> false
+console.log(isMatch('a/b')); //=> true
+
+// you can still configure the matcher function to accept windows paths
+const isMatch = picomatch('a/*', { options: windows });
+console.log(isMatch('a\\b')); //=> true
+console.log(isMatch('a/b')); //=> true
+```
+
+### [.test](lib/picomatch.js#L116)
+
+Test `input` with the given `regex`. This is used by the main `picomatch()` function to test the input string.
+
+**Params**
+
+* `input` **{String}**: String to test.
+* `regex` **{RegExp}**
+* `returns` **{Object}**: Returns an object with matching info.
+
+**Example**
+
+```js
+const picomatch = require('picomatch');
+// picomatch.test(input, regex[, options]);
+
+console.log(picomatch.test('foo/bar', /^(?:([^/]*?)\/([^/]*?))$/));
+// { isMatch: true, match: [ 'foo/', 'foo', 'bar' ], output: 'foo/bar' }
+```
+
+### [.matchBase](lib/picomatch.js#L160)
+
+Match the basename of a filepath.
+
+**Params**
+
+* `input` **{String}**: String to test.
+* `glob` **{RegExp|String}**: Glob pattern or regex created by [.makeRe](#makeRe).
+* `returns` **{Boolean}**
+
+**Example**
+
+```js
+const picomatch = require('picomatch');
+// picomatch.matchBase(input, glob[, options]);
+console.log(picomatch.matchBase('foo/bar.js', '*.js'); // true
+```
+
+### [.isMatch](lib/picomatch.js#L182)
+
+Returns true if **any** of the given glob `patterns` match the specified `string`.
+
+**Params**
+
+* **{String|Array}**: str The string to test.
+* **{String|Array}**: patterns One or more glob patterns to use for matching.
+* **{Object}**: See available [options](#options).
+* `returns` **{Boolean}**: Returns true if any patterns match `str`
+
+**Example**
+
+```js
+const picomatch = require('picomatch');
+// picomatch.isMatch(string, patterns[, options]);
+
+console.log(picomatch.isMatch('a.a', ['b.*', '*.a'])); //=> true
+console.log(picomatch.isMatch('a.a', 'b.*')); //=> false
+```
+
+### [.parse](lib/picomatch.js#L198)
+
+Parse a glob pattern to create the source string for a regular expression.
+
+**Params**
+
+* `pattern` **{String}**
+* `options` **{Object}**
+* `returns` **{Object}**: Returns an object with useful properties and output to be used as a regex source string.
+
+**Example**
+
+```js
+const picomatch = require('picomatch');
+--- ../code/node_modules/.pnpm/postcss@8.5.23/node_modules/postcss/README.md
+# PostCSS
+
+<img align="right" width="95" height="95"
+     alt="Philosopher’s stone, logo of PostCSS"
+     src="https://postcss.org/logo.svg">
+
+PostCSS is a tool for transforming styles with JS plugins.
+These plugins can lint your CSS, support variables and mixins,
+transpile future CSS syntax, inline images, and more.
+
+PostCSS is used by industry leaders including Wikipedia, Twitter, Alibaba,
+and JetBrains. The [Autoprefixer] and [Stylelint] PostCSS plugins are some of the most popular CSS tools.
+
+---
+
+<img src="https://cdn.evilmartians.com/badges/logo-no-label.svg" alt="" width="22" height="16" />  PostCSS is built by <b><a href="https://evilmartians.com/>Evil Martians</a></b>, an American design and engineering consultancy for <b>developer tools, AI, and cybersecurity startups</b>.
+
+---
+
+[Abstract Syntax Tree]: https://en.wikipedia.org/wiki/Abstract_syntax_tree
+[Evil Martians]: https://evilmartians.com/?utm_source=postcss
+[Autoprefixer]: https://github.com/postcss/autoprefixer
+[Stylelint]: https://stylelint.io/
+[plugins]: https://github.com/postcss/postcss#plugins
+--- ../code/node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/README.md
+# `react-dom`
+
+This package serves as the entry point to the DOM and server renderers for React. It is intended to be paired with the generic React package, which is shipped as `react` to npm.
+
+## Installation
+
+```sh
+npm install react react-dom
+```
+
+## Usage
+
+### In the browser
+
+```js
+import { createRoot } from 'react-dom/client';
+
+function App() {
+  return <div>Hello World</div>;
+}
+
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
+```
+
+### On the server
+
+```js
+import { renderToPipeableStream } from 'react-dom/server';
+
+function App() {
+  return <div>Hello World</div>;
+}
+
+function handleRequest(res) {
+  // ... in your server handler ...
+  const stream = renderToPipeableStream(<App />, {
+    onShellReady() {
+      res.statusCode = 200;
+      res.setHeader('Content-type', 'text/html');
+      stream.pipe(res);
+    },
+    // ...
+  });
+}
+```
+
+## API
+
+### `react-dom`
+
+See https://react.dev/reference/react-dom
+
+### `react-dom/client`
+
+See https://react.dev/reference/react-dom/client
+
+### `react-dom/server`
+
+See https://react.dev/reference/react-dom/server
+--- ../code/node_modules/.pnpm/react@19.2.4/node_modules/react/README.md
+# `react`
+
+React is a JavaScript library for creating user interfaces.
+
+The `react` package contains only the functionality necessary to define React components. It is typically used together with a React renderer like `react-dom` for the web, or `react-native` for the native environments.
+
+**Note:** by default, React will be in development mode. The development version includes extra warnings about common mistakes, whereas the production version includes extra performance optimizations and strips all error messages. Don't forget to use the [production build](https://reactjs.org/docs/optimizing-performance.html#use-the-production-build) when deploying your application.
+
+## Usage
+
+```js
+import { useState } from 'react';
+import { createRoot } from 'react-dom/client';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    <>
+      <h1>{count}</h1>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+    </>
+  );
+}
+
+const root = createRoot(document.getElementById('root'));
+root.render(<Counter />);
+```
+
+## Documentation
+
+See https://react.dev/
+
+## API
+
+See https://react.dev/reference/react
+--- ../code/node_modules/.pnpm/rolldown@1.0.0-rc.12/node_modules/rolldown/README.md
+# Rolldown
+
+> Fast Rust-based bundler for JavaScript with Rollup-compatible API
+
+- ⚡️ Lightning Fast Performance
+- 🔌 Rollup-Compatible APIs
+- ⏩ esbuild Feature Parity
+
+Rolldown is primarily designed to serve as the underlying bundler in [Vite](https://vite.dev/), with the goal to replace esbuild and Rollup with one unified build tool. Although designed for Vite, Rolldown is also fully capable of being used as a standalone, general-purpose bundler. It can serve as a drop-in replacement for Rollup in most cases, and can also be used as an esbuild alternative when better chunking control is needed.
+
+[Read the Docs to Learn More](https://rolldown.rs).
+--- ../code/node_modules/.pnpm/scheduler@0.27.0/node_modules/scheduler/README.md
+# `scheduler`
+
+This is a package for cooperative scheduling in a browser environment. It is currently used internally by React, but we plan to make it more generic.
+
+The public API for this package is not yet finalized.
+
+### Thanks
+
+The React team thanks [Anton Podviaznikov](https://podviaznikov.com/) for donating the `scheduler` package name.
+--- ../code/node_modules/.pnpm/source-map-js@1.2.2/node_modules/source-map-js/README.md
+# Source Map JS
+
+[![NPM](https://nodei.co/npm/source-map-js.png?downloads=true&downloadRank=true)](https://www.npmjs.com/package/source-map-js)
+
+Difference between original [source-map](https://github.com/mozilla/source-map):
+
+> TL,DR: it's fork of original source-map@0.6, but with perfomance optimizations.
+
+This journey starts from [source-map@0.7.0](https://github.com/mozilla/source-map/blob/master/CHANGELOG.md#070). Some part of it was rewritten to Rust and WASM and API became async.
+
+It's still a major block for many libraries like PostCSS or Sass for example because they need to migrate the whole API to the async way. This is the reason why 0.6.1 has 2x more downloads than 0.7.3 while it's faster several times.
+
+![Downloads count](media/downloads.png)
+
+More important that WASM version has some optimizations in JS code too. This is why [community asked to create branch for 0.6 version](https://github.com/mozilla/source-map/issues/324) and port these optimizations but, sadly, the answer was «no». A bit later I discovered [the issue](https://github.com/mozilla/source-map/issues/370) created by [Ben Rothman (@benthemonkey)](https://github.com/benthemonkey) with no response at all.
+
+[Roman Dvornov (@lahmatiy)](https://github.com/lahmatiy) wrote a [serveral posts](https://t.me/gorshochekvarit/76) (russian, only, sorry) about source-map library in his own Telegram channel. He mentioned the article [«Maybe you don't need Rust and WASM to speed up your JS»](https://mrale.ph/blog/2018/02/03/maybe-you-dont-need-rust-to-speed-up-your-js.html) written by [Vyacheslav Egorov (@mraleph)](https://github.com/mraleph). This article contains optimizations and hacks that lead to almost the same performance compare to WASM implementation.
+
+I decided to fork the original source-map and port these optimizations from the article and several others PR from the original source-map.
+
+---------
+
+This is a library to generate and consume the source map format
+[described here][format].
+
+[format]: https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit
+
+## Use with Node
+
+    $ npm install source-map-js
+
+<!-- ## Use on the Web
+
+    <script src="https://raw.githubusercontent.com/mozilla/source-map/master/dist/source-map.min.js" defer></script> -->
+
+--------------------------------------------------------------------------------
+
+<!-- `npm run toc` to regenerate the Table of Contents -->
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+## Table of Contents
+
+- [Examples](#examples)
+  - [Consuming a source map](#consuming-a-source-map)
+  - [Generating a source map](#generating-a-source-map)
+    - [With SourceNode (high level API)](#with-sourcenode-high-level-api)
+    - [With SourceMapGenerator (low level API)](#with-sourcemapgenerator-low-level-api)
+- [API](#api)
+  - [SourceMapConsumer](#sourcemapconsumer)
+    - [new SourceMapConsumer(rawSourceMap)](#new-sourcemapconsumerrawsourcemap)
+    - [SourceMapConsumer.prototype.computeColumnSpans()](#sourcemapconsumerprototypecomputecolumnspans)
+    - [SourceMapConsumer.prototype.originalPositionFor(generatedPosition)](#sourcemapconsumerprototypeoriginalpositionforgeneratedposition)
+    - [SourceMapConsumer.prototype.generatedPositionFor(originalPosition)](#sourcemapconsumerprototypegeneratedpositionfororiginalposition)
+    - [SourceMapConsumer.prototype.allGeneratedPositionsFor(originalPosition)](#sourcemapconsumerprototypeallgeneratedpositionsfororiginalposition)
+    - [SourceMapConsumer.prototype.hasContentsOfAllSources()](#sourcemapconsumerprototypehascontentsofallsources)
+    - [SourceMapConsumer.prototype.sourceContentFor(source[, returnNullOnMissing])](#sourcemapconsumerprototypesourcecontentforsource-returnnullonmissing)
+    - [SourceMapConsumer.prototype.eachMapping(callback, context, order)](#sourcemapconsumerprototypeeachmappingcallback-context-order)
+  - [SourceMapGenerator](#sourcemapgenerator)
+    - [new SourceMapGenerator([startOfSourceMap])](#new-sourcemapgeneratorstartofsourcemap)
+    - [SourceMapGenerator.fromSourceMap(sourceMapConsumer)](#sourcemapgeneratorfromsourcemapsourcemapconsumer)
+    - [SourceMapGenerator.prototype.addMapping(mapping)](#sourcemapgeneratorprototypeaddmappingmapping)
+    - [SourceMapGenerator.prototype.setSourceContent(sourceFile, sourceContent)](#sourcemapgeneratorprototypesetsourcecontentsourcefile-sourcecontent)
+    - [SourceMapGenerator.prototype.applySourceMap(sourceMapConsumer[, sourceFile[, sourceMapPath]])](#sourcemapgeneratorprototypeapplysourcemapsourcemapconsumer-sourcefile-sourcemappath)
+    - [SourceMapGenerator.prototype.toString()](#sourcemapgeneratorprototypetostring)
+  - [SourceNode](#sourcenode)
+    - [new SourceNode([line, column, source[, chunk[, name]]])](#new-sourcenodeline-column-source-chunk-name)
+    - [SourceNode.fromStringWithSourceMap(code, sourceMapConsumer[, relativePath])](#sourcenodefromstringwithsourcemapcode-sourcemapconsumer-relativepath)
+    - [SourceNode.prototype.add(chunk)](#sourcenodeprototypeaddchunk)
+    - [SourceNode.prototype.prepend(chunk)](#sourcenodeprototypeprependchunk)
+    - [SourceNode.prototype.setSourceContent(sourceFile, sourceContent)](#sourcenodeprototypesetsourcecontentsourcefile-sourcecontent)
+    - [SourceNode.prototype.walk(fn)](#sourcenodeprototypewalkfn)
+    - [SourceNode.prototype.walkSourceContents(fn)](#sourcenodeprototypewalksourcecontentsfn)
+    - [SourceNode.prototype.join(sep)](#sourcenodeprototypejoinsep)
+    - [SourceNode.prototype.replaceRight(pattern, replacement)](#sourcenodeprototypereplacerightpattern-replacement)
+    - [SourceNode.prototype.toString()](#sourcenodeprototypetostring)
+    - [SourceNode.prototype.toStringWithSourceMap([startOfSourceMap])](#sourcenodeprototypetostringwithsourcemapstartofsourcemap)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Examples
+
+### Consuming a source map
+
+```js
+var rawSourceMap = {
+  version: 3,
+  file: 'min.js',
+  names: ['bar', 'baz', 'n'],
+  sources: ['one.js', 'two.js'],
+  sourceRoot: 'http://example.com/www/js/',
+  mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA'
+};
+
+var smc = new SourceMapConsumer(rawSourceMap);
+
+console.log(smc.sources);
+// [ 'http://example.com/www/js/one.js',
+//   'http://example.com/www/js/two.js' ]
+
+console.log(smc.originalPositionFor({
+  line: 2,
+  column: 28
+}));
+// { source: 'http://example.com/www/js/two.js',
+//   line: 2,
+//   column: 10,
+//   name: 'n' }
+
+console.log(smc.generatedPositionFor({
+  source: 'http://example.com/www/js/two.js',
+  line: 2,
+  column: 10
+}));
+// { line: 2, column: 28 }
+
+smc.eachMapping(function (m) {
+  // ...
+});
+```
+
+### Generating a source map
+
+In depth guide:
+[**Compiling to JavaScript, and Debugging with Source Maps**](https://hacks.mozilla.org/2013/05/compiling-to-javascript-and-debugging-with-source-maps/)
+
+#### With SourceNode (high level API)
+
+```js
+function compile(ast) {
+  switch (ast.type) {
+  case 'BinaryExpression':
+    return new SourceNode(
+      ast.location.line,
+      ast.location.column,
+      ast.location.source,
+      [compile(ast.left), " + ", compile(ast.right)]
+    );
+  case 'Literal':
+    return new SourceNode(
+      ast.location.line,
+      ast.location.column,
+      ast.location.source,
+      String(ast.value)
+    );
+  // ...
+  default:
+    throw new Error("Bad AST");
+  }
+}
+
+var ast = parse("40 + 2", "add.js");
+console.log(compile(ast).toStringWithSourceMap({
+  file: 'add.js'
+}));
+// { code: '40 + 2',
+//   map: [object SourceMapGenerator] }
+```
+
+#### With SourceMapGenerator (low level API)
+
+```js
+var map = new SourceMapGenerator({
+  file: "source-mapped.js"
+});
+
+map.addMapping({
+  generated: {
+    line: 10,
+    column: 35
+  },
+  source: "foo.js",
+  original: {
+    line: 33,
+    column: 2
+  },
+  name: "christopher"
+});
+
+console.log(map.toString());
+// '{"version":3,"file":"source-mapped.js","sources":["foo.js"],"names":["christopher"],"mappings":";;;;;;;;;mCAgCEA"}'
+```
+
+## API
+
+Get a reference to the module:
+
+```js
+// Node.js
+var sourceMap = require('source-map');
+
+// Browser builds
+var sourceMap = window.sourceMap;
+
+// Inside Firefox
+const sourceMap = require("devtools/toolkit/sourcemap/source-map.js");
+```
+
+### SourceMapConsumer
+
+A SourceMapConsumer instance represents a parsed source map which we can query
+for information about the original file positions by giving it a file position
+in the generated source.
+
+#### new SourceMapConsumer(rawSourceMap)
+
+The only parameter is the raw source map (either as a string which can be
+`JSON.parse`'d, or an object). According to the spec, source maps have the
+following attributes:
+
+* `version`: Which version of the source map spec this map is following.
+
+* `sources`: An array of URLs to the original source files.
+
+* `names`: An array of identifiers which can be referenced by individual
+  mappings.
+
+* `sourceRoot`: Optional. The URL root from which all sources are relative.
+
+* `sourcesContent`: Optional. An array of contents of the original source files.
+--- ../code/node_modules/.pnpm/tailwindcss@4.2.2/node_modules/tailwindcss/README.md
+<p align="center">
+  <a href="https://tailwindcss.com" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/HEAD/.github/logo-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/HEAD/.github/logo-light.svg">
+      <img alt="Tailwind CSS" src="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/HEAD/.github/logo-light.svg" width="350" height="70" style="max-width: 100%;">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  A utility-first CSS framework for rapidly building custom user interfaces.
+</p>
+
+<p align="center">
+    <a href="https://github.com/tailwindlabs/tailwindcss/actions"><img src="https://img.shields.io/github/actions/workflow/status/tailwindlabs/tailwindcss/ci.yml?branch=main" alt="Build Status"></a>
+    <a href="https://www.npmjs.com/package/tailwindcss"><img src="https://img.shields.io/npm/dt/tailwindcss.svg" alt="Total Downloads"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss/releases"><img src="https://img.shields.io/npm/v/tailwindcss.svg" alt="Latest Release"></a>
+    <a href="https://github.com/tailwindlabs/tailwindcss/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/tailwindcss.svg" alt="License"></a>
+</p>
+
+---
+
+## Documentation
+
+For full documentation, visit [tailwindcss.com](https://tailwindcss.com).
+
+## Community
+
+For help, discussion about best practices, or feature ideas:
+
+[Discuss Tailwind CSS on GitHub](https://github.com/tailwindlabs/tailwindcss/discussions)
+
+## Contributing
+
+If you're interested in contributing to Tailwind CSS, please read our [contributing docs](https://github.com/tailwindlabs/tailwindcss/blob/main/.github/CONTRIBUTING.md) **before submitting a pull request**.
+--- ../code/node_modules/.pnpm/tapable@2.3.2/node_modules/tapable/README.md
+# Tapable
+
+The tapable package exposes many Hook classes, which can be used to create hooks for plugins.
+
+```javascript
+const {
+	AsyncParallelBailHook,
+	AsyncParallelHook,
+	AsyncSeriesBailHook,
+	AsyncSeriesHook,
+	AsyncSeriesWaterfallHook,
+	SyncBailHook,
+	SyncHook,
+	SyncLoopHook,
+	SyncWaterfallHook
+} = require("tapable");
+```
+
+## Installation
+
+```shell
+npm install --save tapable
+```
+
+## Usage
+
+All Hook constructors take one optional argument, which is a list of argument names as strings.
+
+```js
+const hook = new SyncHook(["arg1", "arg2", "arg3"]);
+```
+
+The best practice is to expose all hooks of a class in a `hooks` property:
+
+```js
+class Car {
+	constructor() {
+		this.hooks = {
+			accelerate: new SyncHook(["newSpeed"]),
+			brake: new SyncHook(),
+			calculateRoutes: new AsyncParallelHook(["source", "target", "routesList"])
+		};
+	}
+
+	/* ... */
+}
+```
+
+Other people can now use these hooks:
+
+```js
+const myCar = new Car();
+
+// Use the tap method to add a consument
+myCar.hooks.brake.tap("WarningLampPlugin", () => warningLamp.on());
+```
+
+It's required to pass a name to identify the plugin/reason.
+
+You may receive arguments:
+
+```js
+myCar.hooks.accelerate.tap("LoggerPlugin", (newSpeed) =>
+	console.log(`Accelerating to ${newSpeed}`)
+);
+```
+
+For sync hooks, `tap` is the only valid method to add a plugin. Async hooks also support async plugins:
+
+```js
+myCar.hooks.calculateRoutes.tapPromise(
+	"GoogleMapsPlugin",
+	(source, target, routesList) =>
+		// return a promise
+		google.maps.findRoute(source, target).then((route) => {
+			routesList.add(route);
+		})
+);
+myCar.hooks.calculateRoutes.tapAsync(
+	"BingMapsPlugin",
+	(source, target, routesList, callback) => {
+		bing.findRoute(source, target, (err, route) => {
+			if (err) return callback(err);
+			routesList.add(route);
+			// call the callback
+			callback();
+		});
+	}
+);
+
+// You can still use sync plugins
+myCar.hooks.calculateRoutes.tap(
+	"CachedRoutesPlugin",
+	(source, target, routesList) => {
+		const cachedRoute = cache.get(source, target);
+		if (cachedRoute) routesList.add(cachedRoute);
+	}
+);
+```
+
+The class declaring these hooks needs to call them:
+
+```js
+class Car {
+	/**
+	 * You won't get returned value from SyncHook or AsyncParallelHook,
+	 * to do that, use SyncWaterfallHook and AsyncSeriesWaterfallHook respectively
+	 */
+
+	setSpeed(newSpeed) {
+		// following call returns undefined even when you returned values
+		this.hooks.accelerate.call(newSpeed);
+	}
+
+	useNavigationSystemPromise(source, target) {
+		const routesList = new List();
+		return this.hooks.calculateRoutes
+			.promise(source, target, routesList)
+			.then((res) =>
+				// res is undefined for AsyncParallelHook
+				routesList.getRoutes()
+			);
+	}
+
+	useNavigationSystemAsync(source, target, callback) {
+		const routesList = new List();
+		this.hooks.calculateRoutes.callAsync(source, target, routesList, (err) => {
+			if (err) return callback(err);
+			callback(null, routesList.getRoutes());
+		});
+	}
+}
+```
+
+The Hook will compile a method with the most efficient way of running your plugins. It generates code depending on:
+
+- The number of registered plugins (none, one, many)
+- The kind of registered plugins (sync, async, promise)
+- The used call method (sync, async, promise)
+- The number of arguments
+- Whether interception is used
+
+This ensures fastest possible execution.
+
+## Hook types
+
+Each hook can be tapped with one or several functions. How they are executed depends on the hook type:
+
+- Basic hook (without “Waterfall”, “Bail” or “Loop” in its name). This hook simply calls every function it tapped in a row.
+
+- **Waterfall**. A waterfall hook also calls each tapped function in a row. Unlike the basic hook, it passes a return value from each function to the next function.
+
+- **Bail**. A bail hook allows exiting early. When any of the tapped function returns anything, the bail hook will stop executing the remaining ones.
+
+- **Loop**. When a plugin in a loop hook returns a non-undefined value the hook will restart from the first plugin. It will loop until all plugins return undefined.
+
+Additionally, hooks can be synchronous or asynchronous. To reflect this, there’re “Sync”, “AsyncSeries”, and “AsyncParallel” hook classes:
+
+- **Sync**. A sync hook can only be tapped with synchronous functions (using `myHook.tap()`).
+
+- **AsyncSeries**. An async-series hook can be tapped with synchronous, callback-based and promise-based functions (using `myHook.tap()`, `myHook.tapAsync()` and `myHook.tapPromise()`). They call each async method in a row.
+
+- **AsyncParallel**. An async-parallel hook can also be tapped with synchronous, callback-based and promise-based functions (using `myHook.tap()`, `myHook.tapAsync()` and `myHook.tapPromise()`). However, they run each async method in parallel.
+
+The hook type is reflected in its class name. E.g., `AsyncSeriesWaterfallHook` allows asynchronous functions and runs them in series, passing each function’s return value into the next function.
+
+## Interception
+
+All Hooks offer an additional interception API:
+
+```js
+myCar.hooks.calculateRoutes.intercept({
+	call: (source, target, routesList) => {
+		console.log("Starting to calculate routes");
+	},
+	register: (tapInfo) => {
+		// tapInfo = { type: "promise", name: "GoogleMapsPlugin", fn: ... }
+		console.log(`${tapInfo.name} is doing its job`);
+		return tapInfo; // may return a new tapInfo object
+	}
+});
+```
+
+**call**: `(...args) => void` Adding `call` to your interceptor will trigger when hooks are triggered. You have access to the hooks arguments.
+
+**tap**: `(tap: Tap) => void` Adding `tap` to your interceptor will trigger when a plugin taps into a hook. Provided is the `Tap` object. `Tap` object can't be changed.
+
+**loop**: `(...args) => void` Adding `loop` to your interceptor will trigger for each loop of a looping hook.
+
+**register**: `(tap: Tap) => Tap | undefined` Adding `register` to your interceptor will trigger for each added `Tap` and allows to modify it.
+
+## Context
+
+Plugins and interceptors can opt-in to access an optional `context` object, which can be used to pass arbitrary values to subsequent plugins and interceptors.
+
+```js
+myCar.hooks.accelerate.intercept({
+	context: true,
+	tap: (context, tapInfo) => {
+		// tapInfo = { type: "sync", name: "NoisePlugin", fn: ... }
+		console.log(`${tapInfo.name} is doing it's job`);
+
+		// `context` starts as an empty object if at least one plugin uses `context: true`.
+		// If no plugins use `context: true`, then `context` is undefined.
+		if (context) {
+			// Arbitrary properties can be added to `context`, which plugins can then access.
+			context.hasMuffler = true;
+		}
+	}
+});
+
+myCar.hooks.accelerate.tap(
+	{
+		name: "NoisePlugin",
+		context: true
+	},
+	(context, newSpeed) => {
+		if (context && context.hasMuffler) {
+			console.log("Silence...");
+		} else {
+--- ../code/node_modules/.pnpm/tinyglobby@0.2.15/node_modules/tinyglobby/README.md
+# tinyglobby
+
+[![npm version](https://img.shields.io/npm/v/tinyglobby.svg?maxAge=3600)](https://npmjs.com/package/tinyglobby)
+[![monthly downloads](https://img.shields.io/npm/dm/tinyglobby.svg?maxAge=3600)](https://npmjs.com/package/tinyglobby)
+
+A fast and minimal alternative to globby and fast-glob, meant to behave the same way.
+
+Both globby and fast-glob present some behavior no other globbing lib has,
+which makes it hard to manually replace with something smaller and better.
+
+This library uses only two subdependencies, compared to `globby`'s [23](https://npmgraph.js.org/?q=globby@14.1.0)
+and `fast-glob`'s [17](https://npmgraph.js.org/?q=fast-glob@3.3.3).
+
+## Usage
+
+```js
+import { glob, globSync } from 'tinyglobby';
+
+await glob(['files/*.ts', '!**/*.d.ts'], { cwd: 'src' });
+globSync('src/**/*.ts', { ignore: '**/*.d.ts' });
+```
+
+## Documentation
+
+Visit https://superchupu.dev/tinyglobby to read the full documentation.
+--- ../code/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/README.md
+
+# TypeScript
+
+[![CI](https://github.com/microsoft/TypeScript/actions/workflows/ci.yml/badge.svg)](https://github.com/microsoft/TypeScript/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/typescript.svg)](https://www.npmjs.com/package/typescript)
+[![Downloads](https://img.shields.io/npm/dm/typescript.svg)](https://www.npmjs.com/package/typescript)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/microsoft/TypeScript/badge)](https://securityscorecards.dev/viewer/?uri=github.com/microsoft/TypeScript)
+
+
+[TypeScript](https://www.typescriptlang.org/) is a language for application-scale JavaScript. TypeScript adds optional types to JavaScript that support tools for large-scale JavaScript applications for any browser, for any host, on any OS. TypeScript compiles to readable, standards-based JavaScript. Try it out at the [playground](https://www.typescriptlang.org/play/), and stay up to date via [our blog](https://blogs.msdn.microsoft.com/typescript) and [Twitter account](https://twitter.com/typescript).
+
+Find others who are using TypeScript at [our community page](https://www.typescriptlang.org/community/).
+
+## Installing
+
+For the latest stable version:
+
+```bash
+npm install -D typescript
+```
+
+For our nightly builds:
+
+```bash
+npm install -D typescript@next
+```
+
+## Contribute
+
+There are many ways to [contribute](https://github.com/microsoft/TypeScript/blob/main/CONTRIBUTING.md) to TypeScript.
+* [Submit bugs](https://github.com/microsoft/TypeScript/issues) and help us verify fixes as they are checked in.
+* Review the [source code changes](https://github.com/microsoft/TypeScript/pulls).
+* Engage with other TypeScript users and developers on [StackOverflow](https://stackoverflow.com/questions/tagged/typescript).
+* Help each other in the [TypeScript Community Discord](https://discord.gg/typescript).
+* Join the [#typescript](https://twitter.com/search?q=%23TypeScript) discussion on Twitter.
+* [Contribute bug fixes](https://github.com/microsoft/TypeScript/blob/main/CONTRIBUTING.md).
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see
+the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com)
+with any additional questions or comments.
+
+## Documentation
+
+*  [TypeScript in 5 minutes](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html)
+*  [Programming handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+*  [Homepage](https://www.typescriptlang.org/)
+
+## Roadmap
+
+For details on our planned features and future direction, please refer to our [roadmap](https://github.com/microsoft/TypeScript/wiki/Roadmap).
+--- ../code/node_modules/.pnpm/undici-types@6.21.0/node_modules/undici-types/README.md
+# undici-types
+
+This package is a dual-publish of the [undici](https://www.npmjs.com/package/undici) library types. The `undici` package **still contains types**. This package is for users who _only_ need undici types (such as for `@types/node`). It is published alongside every release of `undici`, so you can always use the same version.
+
+- [GitHub nodejs/undici](https://github.com/nodejs/undici)
+- [Undici Documentation](https://undici.nodejs.org/#/)
+--- ../code/node_modules/.pnpm/vite@8.0.5_jiti@2.6.1/node_modules/vite/README.md
+# Vite ⚡
+
+> Next Generation Frontend Tooling
+
+- 💡 Instant Server Start
+- ⚡️ Lightning Fast HMR
+- 🛠️ Rich Features
+- 📦 Optimized Build
+- 🔩 Universal Plugin Interface
+- 🔑 Fully Typed APIs
+
+Vite (French word for "fast", pronounced `/viːt/`) is a new breed of frontend build tool that significantly improves the frontend development experience. It consists of two major parts:
+
+- A dev server that serves your source files over [native ES modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules), with [rich built-in features](https://vite.dev/guide/features.html) and astonishingly fast [Hot Module Replacement (HMR)](https://vite.dev/guide/features.html#hot-module-replacement).
+
+- A [build command](https://vite.dev/guide/build.html) that bundles your code with [Rollup](https://rollupjs.org), pre-configured to output highly optimized static assets for production.
+
+In addition, Vite is highly extensible via its [Plugin API](https://vite.dev/guide/api-plugin.html) and [JavaScript API](https://vite.dev/guide/api-javascript.html) with full typing support.
+
+[Read the Docs to Learn More](https://vite.dev).

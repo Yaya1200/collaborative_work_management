@@ -1,0 +1,46 @@
+{
+  "name": "figma-make-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "server:start": "tsx --tsconfig server/tsconfig.json server/index.ts",
+    "dev": "vite",
+    "server:dev": "tsx watch --tsconfig server/tsconfig.json server/index.ts",
+    "db:migrate": "tsx --tsconfig server/tsconfig.json server/migrate.ts",
+    "build": "vite build",
+    "server:check": "tsc -p server/tsconfig.json --noEmit",
+    "preview": "vite preview",
+    "format": "oxfmt"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.63.0",
+    "mysql2": "^3.24.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^7.9.5",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^1.1.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "oxfmt": "^0.2.0",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.0",
+    "better-sqlite3": "^9.6.0",
+
+  }
+}

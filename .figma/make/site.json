@@ -1,0 +1,10 @@
+{
+  "description": "A collaborative work management platform for organizations to coordinate teams, projects, and tasks, track progress, and meet deadlines in one place.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
