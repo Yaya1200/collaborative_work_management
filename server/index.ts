@@ -1,3 +1,4 @@
+
 import "reflect-metadata"
 import "dotenv/config"
 import bcrypt from "bcryptjs"
@@ -11,7 +12,9 @@ import jwt from "jsonwebtoken"
 import { AppDataSource } from "./data-source.js"
 import {
   Project,
+  ProjectStatus,
   Task,
+  TaskStatus,
   User,
   Workspace,
   WorkspaceMember,
@@ -30,6 +33,7 @@ app.use(
     credentials: true,
   }),
 )
+
 app.use(express.json({ limit: "1mb" }))
 
 app.use((request, response, next) => {
@@ -79,6 +83,7 @@ async function requireAuth(
   next: NextFunction,
 ) {
   const authorization = request.header("authorization")
+
   if (!authorization?.startsWith("Bearer ")) {
     apiError(response, 401, "UNAUTHENTICATED", "Authentication is required.")
     return
@@ -88,7 +93,9 @@ async function requireAuth(
     const payload = jwt.verify(authorization.slice(7), jwtSecret, {
       issuer: "workspace-pm",
     })
+
     if (typeof payload === "string" || !payload.sub) throw new Error()
+
     response.locals.userId = String(payload.sub)
     next()
   } catch {
@@ -110,6 +117,7 @@ app.get("/api/v1/health", (_request, response) => {
   })
 })
 
+// Register
 app.post("/api/v1/auth/register", async (request, response) => {
   const name = String(request.body.name ?? "").trim()
   const email = String(request.body.email ?? "")
@@ -122,6 +130,7 @@ app.post("/api/v1/auth/register", async (request, response) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     fields.email = ["Enter a valid email address."]
   if (password.length < 10) fields.password = ["Use at least 10 characters."]
+
   if (Object.keys(fields).length) {
     apiError(
       response,
@@ -134,6 +143,7 @@ app.post("/api/v1/auth/register", async (request, response) => {
   }
 
   const users = AppDataSource.getRepository(User)
+
   if (await users.existsBy({ email })) {
     apiError(
       response,
@@ -151,16 +161,23 @@ app.post("/api/v1/auth/register", async (request, response) => {
       passwordHash: await bcrypt.hash(password, 12),
     }),
   )
+
   response.status(201).json({
-    data: { token: issueToken(user), user: publicUser(user), workspaces: [] },
+    data: {
+      token: issueToken(user),
+      user: publicUser(user),
+      workspaces: [],
+    },
   })
 })
 
+// Login
 app.post("/api/v1/auth/login", async (request, response) => {
   const email = String(request.body.email ?? "")
     .trim()
     .toLowerCase()
   const password = String(request.body.password ?? "")
+
   const user = await AppDataSource.getRepository(User)
     .createQueryBuilder("user")
     .addSelect("user.passwordHash")
@@ -185,6 +202,7 @@ app.post("/api/v1/auth/login", async (request, response) => {
     where: { user: { id: user.id }, status: "active" },
     relations: { workspace: true },
   })
+
   response.json({
     data: {
       token: issueToken(user),
@@ -197,23 +215,28 @@ app.post("/api/v1/auth/login", async (request, response) => {
   })
 })
 
+// Current user
 app.get("/api/v1/me", requireAuth, async (_request, response) => {
   const user = await AppDataSource.getRepository(User).findOneBy({
     id: response.locals.userId,
   })
+
   if (!user) {
     apiError(response, 404, "NOT_FOUND", "User was not found.")
     return
   }
+
   response.json({ data: publicUser(user) })
 })
 
+// List workspaces
 app.get("/api/v1/workspaces", requireAuth, async (_request, response) => {
   const memberships = await AppDataSource.getRepository(WorkspaceMember).find({
     where: { user: { id: response.locals.userId }, status: "active" },
     relations: { workspace: true },
     order: { joinedAt: "DESC" },
   })
+
   response.json({
     data: memberships.map((membership) => ({
       ...membership.workspace,
@@ -222,6 +245,7 @@ app.get("/api/v1/workspaces", requireAuth, async (_request, response) => {
   })
 })
 
+// Create workspace
 app.post("/api/v1/workspaces", requireAuth, async (request, response) => {
   const name = String(request.body.name ?? "").trim()
   const slug = String(request.body.slug ?? "")
@@ -229,9 +253,13 @@ app.post("/api/v1/workspaces", requireAuth, async (request, response) => {
     .toLowerCase()
   const description = String(request.body.description ?? "").trim() || null
   const fields: Record<string, string[]> = {}
+
   if (name.length < 2) fields.name = ["Enter a workspace name."]
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))
+
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     fields.slug = ["Use lowercase letters, numbers, and hyphens only."]
+  }
+
   if (Object.keys(fields).length) {
     apiError(
       response,
@@ -258,10 +286,12 @@ app.post("/api/v1/workspaces", requireAuth, async (request, response) => {
     const user = await manager.findOneByOrFail(User, {
       id: response.locals.userId,
     })
+
     const created = await manager.save(
       Workspace,
       manager.create(Workspace, { name, slug, description, owner: user }),
     )
+
     await manager.save(
       WorkspaceMember,
       manager.create(WorkspaceMember, {
@@ -271,6 +301,7 @@ app.post("/api/v1/workspaces", requireAuth, async (request, response) => {
         status: "active",
       }),
     )
+
     return created
   })
 
@@ -279,6 +310,7 @@ app.post("/api/v1/workspaces", requireAuth, async (request, response) => {
   })
 })
 
+// Verify workspace membership
 async function requireWorkspaceMember(
   request: Request,
   response: Response,
@@ -286,6 +318,7 @@ async function requireWorkspaceMember(
 ) {
   const userId = response.locals.userId as string | undefined
   const workspaceId = String(request.params.workspaceId)
+
   if (!userId) {
     apiError(response, 401, "UNAUTHENTICATED", "Authentication is required.")
     return
@@ -301,14 +334,17 @@ async function requireWorkspaceMember(
       relations: { workspace: true, user: true },
     },
   )
+
   if (!membership) {
     apiError(response, 404, "NOT_FOUND", "Workspace was not found.")
     return
   }
+
   response.locals.membership = membership
   next()
 }
 
+// List projects
 app.get(
   "/api/v1/workspaces/:workspaceId/projects",
   requireAuth,
@@ -320,6 +356,7 @@ app.get(
       Math.max(Number(request.query.per_page ?? 25), 1),
       100,
     )
+
     const [data, total] = await AppDataSource.getRepository(
       Project,
     ).findAndCount({
@@ -329,10 +366,12 @@ app.get(
       skip: (page - 1) * perPage,
       take: perPage,
     })
+
     response.json({ data, meta: { page, per_page: perPage, total } })
   },
 )
 
+// List tasks
 app.get(
   "/api/v1/workspaces/:workspaceId/tasks",
   requireAuth,
@@ -344,22 +383,28 @@ app.get(
       Math.max(Number(request.query.per_page ?? 25), 1),
       100,
     )
+
     const query = AppDataSource.getRepository(Task)
       .createQueryBuilder("task")
       .leftJoinAndSelect("task.project", "project")
       .leftJoinAndSelect("task.owner", "owner")
       .where("task.workspace_id = :workspaceId", { workspaceId })
 
-    if (request.query.status)
+    if (request.query.status) {
       query.andWhere("task.status = :status", { status: request.query.status })
-    if (request.query.priority)
+    }
+
+    if (request.query.priority) {
       query.andWhere("task.priority = :priority", {
         priority: request.query.priority,
       })
-    if (request.query.search)
+    }
+
+    if (request.query.search) {
       query.andWhere("task.title LIKE :search", {
         search: `%${request.query.search}%`,
       })
+    }
 
     const [data, total] = await query
       .orderBy("task.due_date", "ASC")
@@ -371,6 +416,115 @@ app.get(
   },
 )
 
+// Dashboard
+app.get(
+  "/api/v1/workspaces/:workspaceId/dashboard",
+  requireAuth,
+  requireWorkspaceMember,
+  async (request, response) => {
+    const workspaceId = String(request.params.workspaceId)
+    const userId = response.locals.userId as string
+    const today = new Date().toISOString().slice(0, 10)
+
+    const taskRepository = AppDataSource.getRepository(Task)
+    const projectRepository = AppDataSource.getRepository(Project)
+
+    const myTasks = taskRepository
+      .createQueryBuilder("task")
+      .leftJoinAndSelect("task.project", "project")
+      .leftJoinAndSelect("task.owner", "owner")
+      .where("task.workspace_id = :workspaceId", { workspaceId })
+      .andWhere("task.owner_user_id = :userId", { userId })
+
+    const [
+      myOpenTasks,
+      overdueTasks,
+      blockedTasks,
+      awaitingReview,
+      activeProjects,
+      totalProjects,
+      upcomingDeadlines,
+      projects,
+      myTaskList,
+    ] = await Promise.all([
+      myTasks.clone()
+        .andWhere("task.status != :done", { done: "done" })
+        .getCount(),
+
+      myTasks.clone()
+        .andWhere("task.status != :done", { done: "done" })
+        .andWhere("task.due_date < :today", { today })
+        .getCount(),
+
+      taskRepository.createQueryBuilder("task")
+        .where("task.workspace_id = :workspaceId", { workspaceId })
+        .andWhere("(task.is_blocked = :blocked OR task.status = :status)", {
+          blocked: true,
+          status: TaskStatus.Blocked,
+        })
+        .getCount(),
+
+      taskRepository.count({
+        where: {
+          workspace: { id: workspaceId },
+          status: TaskStatus.InReview,
+        },
+      }),
+
+      projectRepository.count({
+        where: {
+          workspace: { id: workspaceId },
+          status: ProjectStatus.Active,
+        },
+      }),
+
+      projectRepository.count({
+        where: { workspace: { id: workspaceId } },
+      }),
+
+      taskRepository.createQueryBuilder("task")
+        .leftJoinAndSelect("task.project", "project")
+        .leftJoinAndSelect("task.owner", "owner")
+        .where("task.workspace_id = :workspaceId", { workspaceId })
+        .andWhere("task.due_date >= :today", { today })
+        .andWhere("task.status != :done", { done: "done" })
+        .orderBy("task.due_date", "ASC")
+        .take(5)
+        .getMany(),
+
+      projectRepository.find({
+        where: { workspace: { id: workspaceId } },
+        relations: { space: true },
+        order: { updatedAt: "DESC" },
+        take: 5,
+      }),
+
+      myTasks.clone()
+        .andWhere("task.status != :done", { done: "done" })
+        .orderBy("task.due_date", "ASC")
+        .take(5)
+        .getMany(),
+    ])
+
+    response.json({
+      data: {
+        stats: {
+          myOpenTasks,
+          overdueTasks,
+          blockedTasks,
+          awaitingReview,
+          activeProjects,
+          totalProjects,
+        },
+        myTasks: myTaskList,
+        upcomingDeadlines,
+        projects,
+      },
+    })
+  },
+)
+
+// Central error handler
 app.use(
   (
     error: unknown,
