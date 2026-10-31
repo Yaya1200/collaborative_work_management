@@ -1,3 +1,4 @@
+
 export type WorkspaceSummary = {
   id: string
   name: string
@@ -26,17 +27,45 @@ export class ApiError extends Error {
 
   constructor(message: string, fields?: Record<string, string[]>) {
     super(message)
+    this.name = "ApiError"
     this.fields = fields
   }
 }
 
-const baseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api/v1"
+const baseUrl = (
+  import.meta.env.VITE_API_URL ?? "http://localhost:4000/api/v1"
+).replace(/\/+$/, "")
+
 const sessionKey = "workspace-pm-session"
+
+function isValidSession(value: unknown): value is Session {
+  if (!value || typeof value !== "object") return false
+
+  const session = value as Partial<Session>
+
+  return (
+    typeof session.token === "string" &&
+    !!session.user &&
+    typeof session.user.id === "string" &&
+    typeof session.user.name === "string" &&
+    typeof session.user.email === "string" &&
+    Array.isArray(session.workspaces)
+  )
+}
 
 export function getSession(): Session | null {
   try {
     const value = localStorage.getItem(sessionKey)
-    return value ? JSON.parse(value) as Session : null
+    if (!value) return null
+
+    const parsed: unknown = JSON.parse(value)
+
+    if (!isValidSession(parsed)) {
+      clearSession()
+      return null
+    }
+
+    return parsed
   } catch {
     return null
   }
@@ -51,12 +80,13 @@ export function clearSession() {
 }
 
 export function createDemoSession(): Session {
-  const workspace = {
+  const workspace: WorkspaceSummary = {
     id: "demo",
     name: "Northstar Labs",
     slug: "northstar-labs",
     role: "owner",
   }
+
   return {
     token: "demo",
     user: {
@@ -70,9 +100,14 @@ export function createDemoSession(): Session {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
   const session = getSession()
+
   let response: Response
+
   try {
     response = await fetch(`${baseUrl}${path}`, {
       ...options,
@@ -89,28 +124,54 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       "The API is unavailable. Start the Express server and try again.",
     )
   }
-  const body = (await response.json()) as ApiErrorShape & T
+
+  let body: (ApiErrorShape & T) | null = null
+
+  try {
+    body = await response.json()
+  } catch {
+    if (!response.ok) {
+      throw new ApiError(
+        `The server returned an invalid response (${response.status}).`,
+      )
+    }
+
+    throw new ApiError("The server returned an invalid response.")
+  }
+
   if (!response.ok) {
     throw new ApiError(
-      body.error?.message ?? "Something went wrong.",
-      body.error?.fields,
+      body?.error?.message ?? `Request failed (${response.status}).`,
+      body?.error?.fields,
     )
   }
-  return body
+
+  if (!body) throw new ApiError("The server returned an empty response.")
+  return body as T
 }
 
 export const api = {
-  register: (input: { name: string; email: string; password: string }) =>
+  register: (input: {
+    name: string
+    email: string
+    password: string
+  }) =>
     request<{ data: Session }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(input),
     }),
+
   login: (input: { email: string; password: string }) =>
     request<{ data: Session }>("/auth/login", {
       method: "POST",
       body: JSON.stringify(input),
     }),
-  createWorkspace: (input: { name: string; slug: string; description: string }) =>
+
+  createWorkspace: (input: {
+    name: string
+    slug: string
+    description: string
+  }) =>
     request<{ data: WorkspaceSummary }>("/workspaces", {
       method: "POST",
       body: JSON.stringify(input),
