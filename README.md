@@ -16,7 +16,7 @@ A React and TypeScript work-management app with a Vite frontend and an Express A
    npm install
    ```
 
-2. Configure the environment variables in `.env` (do not commit secrets):
+2. Configure the environment variables in `.env`:
 
    ```dotenv
    API_PORT=4000
