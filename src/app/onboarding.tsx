@@ -7,12 +7,14 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react"
-import { Navigate, useNavigate } from "react-router"
+import { Navigate, useNavigate, useSearchParams } from "react-router"
 import { api, ApiError, getSession, saveSession } from "./api"
 
 export function OnboardingPage() {
   const navigate = useNavigate()
-  const session = getSession()
+  const [searchParams] = useSearchParams()
+  const currentSession = getSession()
+  const addingWorkspace = searchParams.get("new") === "1"
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
   const [description, setDescription] = useState("")
@@ -28,11 +30,19 @@ export function OnboardingPage() {
     [name],
   )
 
-  if (!session) return <Navigate to="/login" replace />
-  if (session.activeWorkspace) return <Navigate to="/" replace />
+  if (!currentSession) return <Navigate to="/login" replace />
+  if (currentSession.activeWorkspace && !addingWorkspace) {
+    return <Navigate to="/" replace />
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault()
+    const session = getSession()
+    if (!session) {
+      navigate("/login")
+      return
+    }
+
     setPending(true)
     setError("")
     try {
