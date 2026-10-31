@@ -166,7 +166,9 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
             <span>
               Password
               {mode === "login" && (
-                <button type="button">Forgot password?</button>
+                <a href="mailto:support@northstar.app?subject=Password%20reset">
+                  Forgot password?
+                </a>
               )}
             </span>
             <div>
