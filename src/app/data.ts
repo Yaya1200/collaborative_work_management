@@ -1,4 +1,10 @@
-export type TaskStatus = "Backlog" | "To do" | "In progress" | "In review" | "Done" | "Blocked"
+export type TaskStatus =
+  | "Backlog"
+  | "To do"
+  | "In progress"
+  | "In review"
+  | "Done"
+  | "Blocked"
 
 export type Task = {
   id: string
@@ -11,6 +17,17 @@ export type Task = {
   dueLabel: string
   owner: { name: string; initials: string; color: string }
   progress: number
+}
+
+export type Project = {
+  key: string
+  name: string
+  space: string
+  status: "Active" | "At risk" | "On hold" | "Completed"
+  progress: number
+  tasks: number
+  due: string
+  color: string
 }
 
 export const tasks: Task[] = [
@@ -112,7 +129,7 @@ export const tasks: Task[] = [
   },
 ]
 
-export const projects = [
+export const projects: Project[] = [
   {
     key: "WEB",
     name: "Website Redesign",
