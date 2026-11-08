@@ -33,9 +33,6 @@ function RolePage({
       <Navigate to="/tasks" replace />
     )
   }
-  if (view === "tasks" && (role === "project_manager" || role === "owner")) {
-    return <Navigate to="/projects" replace />
-  }
   return children
 }
 
