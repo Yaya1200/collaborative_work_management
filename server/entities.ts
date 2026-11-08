@@ -33,6 +33,7 @@ export enum TaskStatus {
   InReview = "in_review",
   Done = "done",
   Blocked = "blocked",
+  Cancelled = "cancelled",
 }
 
 @Entity("users")
@@ -80,6 +81,9 @@ export class Workspace {
 
   @Column({ type: "text", nullable: true })
   description: string | null
+
+  @Column({ type: "boolean", name: "is_active", default: true })
+  isActive: boolean
 
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({ name: "owner_user_id" })
