@@ -29,7 +29,7 @@ import { useWorkspaceData } from "./store"
 
 const primary = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
-  { to: "/tasks", label: "My tasks", icon: CheckSquare2, count: 8 },
+  { to: "/tasks", label: "My tasks", icon: CheckSquare2 },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/inbox", label: "Inbox", icon: Inbox },
@@ -59,28 +59,41 @@ export function Layout() {
         setSearchOpen(true)
         requestAnimationFrame(() => searchInputRef.current?.focus())
       }
-      if (event.key === "Escape") setSearchOpen(false)
+      if (event.key === "Escape") {
+        setSearchOpen(false)
+        setMobileOpen(false)
+      }
     }
 
     window.addEventListener("keydown", handleSearchShortcut)
     return () => window.removeEventListener("keydown", handleSearchShortcut)
   }, [])
 
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [location.pathname])
+
   if (!session) return <Navigate to="/login" replace />
   if (!session.activeWorkspace) return <Navigate to="/onboarding" replace />
 
   const isDeveloper = session.activeWorkspace.role === "member"
-  const isAdmin = ["project_manager", "owner"].includes(
-    session.activeWorkspace.role,
-  )
-  const visiblePrimary = isDeveloper
-    ? primary.filter((item) => ["/", "/tasks", "/projects"].includes(item.to))
-    : isAdmin
-      ? primary.filter((item) => item.to !== "/tasks")
+  const isOwner = session.activeWorkspace.role === "owner"
+  const workspaceRole = session.activeWorkspace.role
+  const visiblePrimary = isOwner
+    ? primary.filter((item) => item.to === "/")
+    : isDeveloper
+      ? primary.filter((item) =>
+          ["/", "/tasks", "/projects"].includes(item.to),        )
       : primary
-  const visibleWorkspace = workspace.filter(
-    (item) => item.to !== "/teams" || isAdmin,
-  )
+  const visibleWorkspace = isDeveloper
+    ? []
+    : isOwner
+      ? workspace.filter((item) => item.to === "/teams")
+      : workspace
+
+  if (isOwner && !["/", "/teams"].includes(location.pathname)) {
+    return <Navigate to="/" replace />
+  }
 
   const initials = session.user.name
     .split(" ")
@@ -117,7 +130,15 @@ export function Layout() {
                 }
                 key={workspace.id}
                 onClick={() => {
-                  saveSession({ ...session, activeWorkspace: workspace })
+                  const currentSession = getSession() ?? session
+                  const selectedWorkspace =
+                    currentSession.workspaces.find(
+                      (item) => item.id === workspace.id,
+                    ) ?? workspace
+                  saveSession({
+                    ...currentSession,
+                    activeWorkspace: selectedWorkspace,
+                  })
                   setWorkspaceOpen(false)
                 }}
                 type="button"
@@ -151,20 +172,17 @@ export function Layout() {
             onClick={() => setMobileOpen(false)}
           >
             <item.icon size={18} />
-            <span>{item.label}</span>
-            {!isDeveloper &&
-              (item.to === "/tasks"
-                ? data.tasks.filter((task) => task.status !== "Done").length
-                : (item.count ?? 0)) > 0 && (
-                <em>
-                  {item.to === "/tasks"
-                    ? data.tasks.filter((task) => task.status !== "Done").length
-                    : (item.count ?? 0)}
-                </em>
-              )}
+            <span>
+              {item.to === "/tasks" &&
+              workspaceRole === "project_manager"
+                ? "Tasks"
+                : item.label}
+            </span>
           </NavLink>
         ))}
-        <p className="nav-label">Workspace</p>
+        {visibleWorkspace.length > 0 && (
+          <p className="nav-label">Workspace</p>
+        )}
         {visibleWorkspace.map((item) => (
           <NavLink
             key={item.to}
@@ -178,10 +196,12 @@ export function Layout() {
       </nav>
 
       <div className="sidebar-footer">
-        <NavLink to="/settings">
-          <Settings size={18} />
-          Settings
-        </NavLink>
+        {!isOwner && (
+          <NavLink to="/settings">
+            <Settings size={18} />
+            Settings
+          </NavLink>
+        )}
         <div className="user-row">
           <Avatar
             initials={initials}
@@ -209,7 +229,10 @@ export function Layout() {
 
   return (
     <div className="app-shell">
-      <aside className={`sidebar ${mobileOpen ? "is-open" : ""}`}>
+      <aside
+        className={`sidebar ${mobileOpen ? "is-open" : ""}`}
+        id="workspace-sidebar"
+      >
         {sidebar}
       </aside>
       {mobileOpen && (
@@ -223,13 +246,16 @@ export function Layout() {
       <div className="main-shell">
         <header className="topbar">
           <button
+            aria-controls="workspace-sidebar"
+            aria-expanded={mobileOpen}
             className="icon-button mobile-menu"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            type="button"
           >
             <Menu size={20} />
           </button>
-          <div className="global-search-wrap">
+          {!isOwner && <div className="global-search-wrap">
             <form
               className="global-search"
               onSubmit={(event) => {
@@ -334,9 +360,9 @@ export function Layout() {
                   ) && <p>No matching tasks or projects.</p>}
               </div>
             )}
-          </div>
+          </div>}
           <div className="topbar-actions">
-            {!isDeveloper && (
+            {!isDeveloper && !isOwner && (
               <div className="notification-wrap">
                 <button
                   aria-expanded={notificationsOpen}
@@ -379,6 +405,12 @@ export function Layout() {
           </div>
         </header>
         <main key={`${location.pathname}${location.search}`}>
+          {session.activeWorkspace.isActive === false && (
+            <div className="auth-error" role="status">
+              This workspace is deactivated and read-only. Ask its Owner to
+              reactivate it.
+            </div>
+          )}
           <Outlet />
         </main>
       </div>
