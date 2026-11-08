@@ -1,4 +1,11 @@
-export type TaskStatus = "Backlog" | "To do" | "In progress" | "In review" | "Done" | "Blocked"
+export type TaskStatus =
+  | "Backlog"
+  | "To do"
+  | "In progress"
+  | "In review"
+  | "Done"
+  | "Blocked"
+  | "Cancelled"
 
 export type Task = {
   id: string
