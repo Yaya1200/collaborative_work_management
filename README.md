@@ -60,17 +60,17 @@ A React and TypeScript work-management app with a Vite frontend and an Express A
 
 ## Authentication and data persistence
 
-New accounts are created from a workspace invitation. The signup page displays the role assigned by that invitation, and the API derives membership permissions from the stored invitation rather than a role submitted by the browser. Invitations expire after seven days and can only be used once; no email is sent automatically. Workspace owners and project managers can create invitations through the API. Only owners can invite other owners or project managers.
+New accounts are created from a workspace invitation. The signup page displays the role assigned by that invitation, and the API derives membership permissions from the stored invitation rather than a role submitted by the browser. Invitations expire after seven days and can only be used once. Only workspace Owners can invite new members, including Project Managers, Team Leaders, Developers, and Testers.
 
-The supported workspace roles are owner, project manager, team leader, member, and tester. The role migration preserves workspace ownership, maps other administrator accounts to project manager, developer accounts to member, and viewer accounts to tester. Team leader is available for new invitations.
+Team invitations are emailed through EmailJS. Configure `VITE_EMAILJS_SERVICE_ID`, `VITE_EMAILJS_TEMPLATE_ID`, and `VITE_EMAILJS_PUBLIC_KEY` in the local `.env` file. Configure the EmailJS template's recipient as `{{to_email}}` and include `{{invitation_url}}`, `{{workspace_name}}`, `{{workspace_role}}`, `{{inviter_name}}`, and `{{expires_in}}` in the message. Restrict the EmailJS allowed origins to the app's domains. Invitation links use the origin serving the app. If delivery fails, the invitation link remains available to copy or retry.
 
-Administrators can still add members from **Team → Developers**. Each new member receives a generated password; copy and securely share the sign-in link, email, and password shown after creation.
+The supported workspace roles are owner, project manager, team leader, member, and tester. Owners see the Overview and owner controls; Project Managers have the full workspace navigation and day-to-day pages. Owners can cancel projects and tasks and deactivate or reactivate their workspace. Deactivation retains workspace data and makes the workspace read-only until reactivated. The role migration preserves workspace ownership, maps other administrator accounts to project manager, developer accounts to member, and viewer accounts to tester. Team leader is available for new invitations.
 
-Developer accounts see only tasks assigned to them, and only the projects and spaces connected to those tasks. Developers can update their task status. Administrators can assign existing database-backed workspace tasks to developers from the same Team page.
+Owners can add members from **Team**. Project Managers can view the role-grouped roster and each member's assigned tasks but cannot invite or create accounts.
 
-Use **Team → Create project and space** and **Create and assign task** for work that should appear in developer accounts. The regular task and project creation controls elsewhere in the prototype still save to browser storage and are not shared with developer accounts. Login, developer account management, database-backed project/task creation, task assignment/status updates, workspace listing, and health checks use the API.
+Developer accounts see only tasks assigned to them, and only the projects and spaces connected to those tasks. Developers can update their task status. Project Managers can create spaces, create and assign tasks from the Projects page, and see workspace-wide task activity on the Overview. Only Owners can cancel projects or tasks.
 
-Tasks created from the Team page may include an optional start date and end date. The end date cannot be earlier than the start date; developers see the date range on their task list and task details.
+Database-backed project/task creation, task assignment/status updates, workspace listing, and health checks use the API. Deactivated workspaces remain readable but reject changes until an Owner reactivates them.
 
 ## Available scripts
 
@@ -105,16 +105,20 @@ All API routes use the `/api/v1` prefix.
 | `GET` | `/me` | Get the authenticated user |
 | `GET` | `/workspaces` | List the authenticated user's workspaces |
 | `POST` | `/workspaces` | Create a workspace |
+| `PATCH` | `/workspaces/:workspaceId/status` | Owner-only workspace deactivation/reactivation |
 | `POST` | `/workspaces/:workspaceId/invitations` | Create a role-based invitation (workspace administrators only) |
+| `GET` | `/workspaces/:workspaceId/members` | List active workspace members and their roles |
 | `GET` | `/workspaces/:workspaceId/developers` | List developers (administrators only) |
 | `POST` | `/workspaces/:workspaceId/developers` | Create a developer with a generated password (administrators only) |
 | `GET` | `/workspaces/:workspaceId/projects` | List workspace projects |
 | `POST` | `/workspaces/:workspaceId/projects` | Create a project and space (administrators only) |
+| `PATCH` | `/workspaces/:workspaceId/projects/:projectId/status` | Update project status; cancellation is Owner-only |
 | `GET` | `/workspaces/:workspaceId/spaces` | List workspace spaces |
+| `POST` | `/workspaces/:workspaceId/spaces` | Create a space (Project Managers only) |
 | `GET` | `/workspaces/:workspaceId/tasks` | List and filter workspace tasks |
-| `POST` | `/workspaces/:workspaceId/tasks` | Create and assign a task (administrators only) |
+| `POST` | `/workspaces/:workspaceId/tasks` | Create and assign a task (Project Managers only) |
 | `PATCH` | `/workspaces/:workspaceId/tasks/:taskId/assignee` | Assign a task to a developer (administrators only) |
-| `PATCH` | `/workspaces/:workspaceId/tasks/:taskId/status` | Update a task status |
+| `PATCH` | `/workspaces/:workspaceId/tasks/:taskId/status` | Update task status; cancellation is Owner-only |
 | `GET` | `/workspaces/:workspaceId/dashboard` | Get workspace dashboard data |
 
 Routes other than health and login require a bearer token. Workspace-specific routes also require active workspace membership.
