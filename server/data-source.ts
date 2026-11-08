@@ -15,6 +15,7 @@ import {
 import { InitialWorkspaceSchema1729958400000 } from "./migrations/1729958400000-InitialWorkspaceSchema.js";
 import { AddDeveloperRole1730707200000 } from "./migrations/1730707200000-AddDeveloperRole.js";
 import { AddRoleBasedInvitations1730793600000 } from "./migrations/1730793600000-AddRoleBasedInvitations.js";
+import { AddWorkspaceCancellation1730880000000 } from "./migrations/1730880000000-AddWorkspaceCancellation.js";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -36,6 +37,7 @@ export const AppDataSource = new DataSource({
     InitialWorkspaceSchema1729958400000,
     AddDeveloperRole1730707200000,
     AddRoleBasedInvitations1730793600000,
+    AddWorkspaceCancellation1730880000000,
   ],
   synchronize: false,
   migrationsRun: true,
