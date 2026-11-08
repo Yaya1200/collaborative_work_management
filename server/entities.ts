@@ -12,9 +12,10 @@ import {
 
 export enum WorkspaceRole {
   Owner = "owner",
-  Admin = "admin",
+  ProjectManager = "project_manager",
+  TeamLeader = "team_leader",
   Member = "member",
-  Viewer = "viewer",
+  Tester = "tester",
 }
 
 export enum ProjectStatus {
@@ -113,6 +114,39 @@ export class WorkspaceMember {
 
   @CreateDateColumn({ type: "datetime", name: "joined_at" })
   joinedAt: Date
+}
+
+@Entity("workspace_invitations")
+@Index(["tokenHash"], { unique: true })
+export class WorkspaceInvitation {
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
+  id: string
+
+  @ManyToOne(() => Workspace, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "workspace_id" })
+  workspace: Workspace
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "inviter_user_id" })
+  inviter: User | null
+
+  @Column({ type: "varchar", length: 190 })
+  email: string
+
+  @Column({ type: "enum", enum: WorkspaceRole })
+  role: WorkspaceRole
+
+  @Column({ type: "char", length: 64, name: "token_hash" })
+  tokenHash: string
+
+  @Column({ type: "datetime", name: "expires_at" })
+  expiresAt: Date
+
+  @Column({ type: "datetime", name: "accepted_at", nullable: true })
+  acceptedAt: Date | null
+
+  @CreateDateColumn({ type: "datetime", name: "created_at" })
+  createdAt: Date
 }
 
 @Entity("spaces")
