@@ -31,6 +31,14 @@ export function OnboardingPage() {
   )
 
   if (!currentSession) return <Navigate to="/login" replace />
+  if (
+    currentSession.activeWorkspace &&
+    !["owner", "project_manager"].includes(
+      currentSession.activeWorkspace.role,
+    )
+  ) {
+    return <Navigate to="/" replace />
+  }
   if (currentSession.activeWorkspace && !addingWorkspace) {
     return <Navigate to="/" replace />
   }
@@ -46,21 +54,13 @@ export function OnboardingPage() {
     setPending(true)
     setError("")
     try {
-      const workspace = session.demo
-        ? {
-            id: "demo",
-            name,
-            slug: slug || suggestedSlug,
-            description,
-            role: "owner",
-          }
-        : (
-            await api.createWorkspace({
-              name,
-              slug: slug || suggestedSlug,
-              description,
-            })
-          ).data
+      const workspace = (
+        await api.createWorkspace({
+          name,
+          slug: slug || suggestedSlug,
+          description,
+        })
+      ).data
       saveSession({
         ...session,
         workspaces: [...session.workspaces, workspace],
@@ -84,7 +84,6 @@ export function OnboardingPage() {
         <span className="brand-mark">
           <span />
         </span>
-        Northstar
       </div>
       <section className="onboarding-card">
         <div className="step-indicator">
