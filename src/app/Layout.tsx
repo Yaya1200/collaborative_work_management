@@ -11,7 +11,6 @@ import {
   CalendarDays,
   CheckSquare2,
   ChevronDown,
-  CircleHelp,
   FolderKanban,
   Inbox,
   LayoutDashboard,
@@ -25,27 +24,24 @@ import {
   X,
 } from "lucide-react"
 import { clearSession, getSession, saveSession } from "./api"
-import { Avatar, CreateItemDialog } from "./components"
-import { activity } from "./data"
-import { createProject, createTask, useWorkspaceData } from "./store"
+import { Avatar } from "./components"
+import { useWorkspaceData } from "./store"
 
 const primary = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
   { to: "/tasks", label: "My tasks", icon: CheckSquare2, count: 8 },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
-  { to: "/inbox", label: "Inbox", icon: Inbox, count: 4 },
+  { to: "/inbox", label: "Inbox", icon: Inbox },
 ]
 
 const workspace = [
   { to: "/spaces", label: "Spaces", icon: Sparkles },
-  { to: "/teams", label: "Teams", icon: Users },
+  { to: "/teams", label: "Team", icon: Users },
 ]
 
 export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [createOpen, setCreateOpen] = useState(false)
-  const [createKind, setCreateKind] = useState<"task" | "project" | null>(null)
   const [workspaceOpen, setWorkspaceOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -73,6 +69,19 @@ export function Layout() {
   if (!session) return <Navigate to="/login" replace />
   if (!session.activeWorkspace) return <Navigate to="/onboarding" replace />
 
+  const isDeveloper = session.activeWorkspace.role === "member"
+  const isAdmin = ["project_manager", "owner"].includes(
+    session.activeWorkspace.role,
+  )
+  const visiblePrimary = isDeveloper
+    ? primary.filter((item) => ["/", "/tasks", "/projects"].includes(item.to))
+    : isAdmin
+      ? primary.filter((item) => item.to !== "/tasks")
+      : primary
+  const visibleWorkspace = workspace.filter(
+    (item) => item.to !== "/teams" || isAdmin,
+  )
+
   const initials = session.user.name
     .split(" ")
     .map((part) => part[0])
@@ -82,20 +91,6 @@ export function Layout() {
 
   const sidebar = (
     <>
-      <div className="brand">
-        <span className="brand-mark">
-          <span />
-        </span>
-        <span>Northstar</span>
-        <button
-          className="icon-button sidebar-close"
-          onClick={() => setMobileOpen(false)}
-          aria-label="Close menu"
-        >
-          <X size={18} />
-        </button>
-      </div>
-
       <div className="workspace-switcher-wrap">
         <button
           aria-expanded={workspaceOpen}
@@ -134,19 +129,21 @@ export function Layout() {
                 </span>
               </button>
             ))}
-            <button
-              className="workspace-add"
-              onClick={() => navigate("/onboarding?new=1")}
-              type="button"
-            >
-              <Plus size={15} /> Create workspace
-            </button>
+            {!isDeveloper && (
+              <button
+                className="workspace-add"
+                onClick={() => navigate("/onboarding?new=1")}
+                type="button"
+              >
+                <Plus size={15} /> Create workspace
+              </button>
+            )}
           </div>
         )}
       </div>
 
       <nav className="sidebar-nav" aria-label="Primary navigation">
-        {primary.map((item) => (
+        {visiblePrimary.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -155,19 +152,20 @@ export function Layout() {
           >
             <item.icon size={18} />
             <span>{item.label}</span>
-            {(item.to === "/tasks"
-              ? data.tasks.filter((task) => task.status !== "Done").length
-              : item.count ?? 0) > 0 && (
-              <em>
-                {item.to === "/tasks"
-                  ? data.tasks.filter((task) => task.status !== "Done").length
-                  : item.count ?? 0}
-              </em>
-            )}
+            {!isDeveloper &&
+              (item.to === "/tasks"
+                ? data.tasks.filter((task) => task.status !== "Done").length
+                : (item.count ?? 0)) > 0 && (
+                <em>
+                  {item.to === "/tasks"
+                    ? data.tasks.filter((task) => task.status !== "Done").length
+                    : (item.count ?? 0)}
+                </em>
+              )}
           </NavLink>
         ))}
         <p className="nav-label">Workspace</p>
-        {workspace.map((item) => (
+        {visibleWorkspace.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -179,30 +177,11 @@ export function Layout() {
         ))}
       </nav>
 
-      <div className="sidebar-spaces">
-        <button onClick={() => navigate("/projects?space=Product%20%26%20Design")} type="button">
-          <span className="space-dot bg-violet-400" />
-          Product & Design <small>12</small>
-        </button>
-        <button onClick={() => navigate("/projects?space=Engineering")} type="button">
-          <span className="space-dot bg-sky-400" />
-          Engineering <small>18</small>
-        </button>
-        <button onClick={() => navigate("/projects?space=Marketing")} type="button">
-          <span className="space-dot bg-amber-400" />
-          Marketing <small>9</small>
-        </button>
-      </div>
-
       <div className="sidebar-footer">
         <NavLink to="/settings">
           <Settings size={18} />
           Settings
         </NavLink>
-        <a href="mailto:support@northstar.app?subject=Northstar%20support">
-          <CircleHelp size={18} />
-          Help & support
-        </a>
         <div className="user-row">
           <Avatar
             initials={initials}
@@ -210,9 +189,7 @@ export function Layout() {
           />
           <span>
             <strong>{session.user.name}</strong>
-            <small>
-              {session.demo ? "Demo workspace" : session.user.email}
-            </small>
+            <small>{session.user.email}</small>
           </span>
           <button
             className="signout-button"
@@ -273,19 +250,25 @@ export function Layout() {
                 <Search size={18} />
               </button>
               <input
-                onBlur={() => window.setTimeout(() => setSearchOpen(false), 120)}
+                onBlur={() =>
+                  window.setTimeout(() => setSearchOpen(false), 120)
+                }
                 onChange={(event) => {
                   setSearchQuery(event.target.value)
                   setSearchOpen(true)
                 }}
                 onFocus={() => setSearchOpen(true)}
-                placeholder="Search tasks, projects, or people…"
+                placeholder={
+                  isDeveloper
+                    ? "Search my tasks…"
+                    : "Search tasks, projects, or people…"
+                }
                 ref={searchInputRef}
                 value={searchQuery}
               />
               <kbd>⌘ K</kbd>
             </form>
-            {searchOpen && searchQuery.trim() && (
+            {!isDeveloper && searchOpen && searchQuery.trim() && (
               <div className="global-search-results">
                 {data.tasks
                   .filter((task) =>
@@ -305,7 +288,12 @@ export function Layout() {
                       type="button"
                     >
                       <CheckSquare2 size={16} />
-                      <span><strong>{task.title}</strong><small>{task.key} · {task.project}</small></span>
+                      <span>
+                        <strong>{task.title}</strong>
+                        <small>
+                          {task.key} · {task.project}
+                        </small>
+                      </span>
                     </button>
                   ))}
                 {data.projects
@@ -319,102 +307,81 @@ export function Layout() {
                     <button
                       key={project.key}
                       onMouseDown={() => {
-                        navigate(`/projects?search=${encodeURIComponent(project.name)}`)
+                        navigate(
+                          `/projects?search=${encodeURIComponent(project.name)}`,
+                        )
                         setSearchQuery("")
                         setSearchOpen(false)
                       }}
                       type="button"
                     >
                       <FolderKanban size={16} />
-                      <span><strong>{project.name}</strong><small>{project.space}</small></span>
+                      <span>
+                        <strong>{project.name}</strong>
+                        <small>{project.space}</small>
+                      </span>
                     </button>
                   ))}
                 {!data.tasks.some((task) =>
                   `${task.title} ${task.key} ${task.project}`
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase()),
-                ) && !data.projects.some((project) =>
-                  `${project.name} ${project.key} ${project.space}`
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()),
-                ) && <p>No matching tasks or projects.</p>}
+                ) &&
+                  !data.projects.some((project) =>
+                    `${project.name} ${project.key} ${project.space}`
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase()),
+                  ) && <p>No matching tasks or projects.</p>}
               </div>
             )}
           </div>
           <div className="topbar-actions">
-            <div className="notification-wrap">
-              <button
-                aria-expanded={notificationsOpen}
-                className="icon-button notification-button"
-                aria-label="Notifications"
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                type="button"
-              >
-                <Bell size={19} />
-                {!notificationsOpen && <span />}
-              </button>
-              {notificationsOpen && (
-                <div className="notification-menu">
-                  <div><strong>Recent activity</strong><button onClick={() => setNotificationsOpen(false)} type="button" aria-label="Close notifications"><X size={15} /></button></div>
-                  {activity.slice(0, 3).map((item) => (
-                    <p key={item.text}><Avatar initials={item.initials} className={item.tone} />{item.text}<small>{item.time}</small></p>
-                  ))}
-                  <button className="text-button" onClick={() => { setNotificationsOpen(false); navigate("/inbox") }} type="button">View inbox</button>
-                </div>
-              )}
-            </div>
-            <div className="create-wrap">
-              <button
-                className="primary-button"
-                onClick={() => setCreateOpen(!createOpen)}
-                type="button"
-              >
-                <Plus size={17} />
-                Create
-              </button>
-              {createOpen && (
-                <div className="create-menu">
-                  <button onClick={() => { setCreateKind("task"); setCreateOpen(false) }}>
-                    <CheckSquare2 size={17} />
-                    <span>
-                      <strong>Task</strong>
-                      <small>Plan a new piece of work</small>
-                    </span>
-                  </button>
-                  <button onClick={() => { setCreateKind("project"); setCreateOpen(false) }}>
-                    <FolderKanban size={17} />
-                    <span>
-                      <strong>Project</strong>
-                      <small>Organize tasks and milestones</small>
-                    </span>
-                  </button>
-                  <button onClick={() => { setCreateOpen(false); navigate("/teams") }}>
-                    <Users size={17} />
-                    <span>
-                      <strong>Team</strong>
-                      <small>Bring collaborators together</small>
-                    </span>
-                  </button>
-                </div>
-              )}
-            </div>
+            {!isDeveloper && (
+              <div className="notification-wrap">
+                <button
+                  aria-expanded={notificationsOpen}
+                  className="icon-button notification-button"
+                  aria-label="Notifications"
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  type="button"
+                >
+                  <Bell size={19} />
+                </button>
+                {notificationsOpen && (
+                  <div className="notification-menu">
+                    <div>
+                      <strong>Notifications</strong>
+                      <button
+                        onClick={() => setNotificationsOpen(false)}
+                        type="button"
+                        aria-label="Close notifications"
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+                    <p className="notification-empty">
+                      You’re all caught up. New updates will appear here.
+                    </p>
+                    <button
+                      className="text-button"
+                      onClick={() => {
+                        setNotificationsOpen(false)
+                        navigate("/inbox")
+                      }}
+                      type="button"
+                    >
+                      Open inbox
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </header>
         <main key={`${location.pathname}${location.search}`}>
           <Outlet />
         </main>
       </div>
-      {createKind && (
-        <CreateItemDialog
-          kind={createKind}
-          onClose={() => setCreateKind(null)}
-          onCreate={(input) => {
-            if ("title" in input) createTask(input)
-            else createProject(input)
-          }}
-          projects={data.projects}
-        />
-      )}
     </div>
   )
 }
