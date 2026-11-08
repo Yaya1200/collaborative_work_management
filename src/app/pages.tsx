@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 
@@ -39,6 +39,7 @@ import {
   api,
   ApiError,
   getSession,
+  saveSession,
   type Developer,
   type WorkspaceProject,
   type WorkspaceTask,
@@ -56,6 +57,8 @@ const taskStatuses: TaskStatus[] = [
   "Blocked",
 
   "Done",
+
+  "Cancelled",
 ]
 
 function dateLabel(date: string) {
@@ -82,6 +85,7 @@ function taskStatusLabel(status: WorkspaceTask["status"]): TaskStatus {
     in_review: "In review",
     blocked: "Blocked",
     done: "Done",
+    cancelled: "Cancelled",
   }
   return labels[status]
 }
@@ -168,15 +172,23 @@ export function DashboardPage() {
   const today = todayString()
   const todayDate = new Date()
   const session = getSession()
-  const isAdmin = ["project_manager", "owner"].includes(
-    session?.activeWorkspace?.role ?? "",
-  )
+  const isOwner = session?.activeWorkspace?.role === "owner"
+  const isProjectManager =
+    session?.activeWorkspace?.role === "project_manager"
+  const isAdmin = isOwner
   const workspaceId = session?.activeWorkspace?.id
   const [workspaceTasks, setWorkspaceTasks] = useState<WorkspaceTask[]>([])
   const [workspaceProjects, setWorkspaceProjects] =
     useState<WorkspaceProject[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [workspaceActive, setWorkspaceActive] = useState(
+    session?.activeWorkspace?.isActive !== false,
+  )
+
+  useEffect(() => {
+    setWorkspaceActive(session?.activeWorkspace?.isActive !== false)
+  }, [workspaceId, session?.activeWorkspace?.isActive])
 
   useEffect(() => {
     if (!workspaceId) {
@@ -214,30 +226,35 @@ export function DashboardPage() {
     }
   }, [workspaceId])
 
-  const myTasks = workspaceTasks
-    .filter((task) => task.owner.id === session?.user.id)
+  const visibleTasks = workspaceTasks
+    .filter(
+      (task) =>
+        isProjectManager || task.owner.id === session?.user.id,
+    )
     .map(taskForDisplay)
-  const myOpenTasks = myTasks.filter((task) => task.status !== "Done")
-  const overdueTasks = myOpenTasks.filter(
+  const openTasks = visibleTasks.filter(
+    (task) => task.status !== "Done" && task.status !== "Cancelled",
+  )
+  const overdueTasks = openTasks.filter(
     (task) => task.due && task.due < today,
   )
-  const blockedTasks = myTasks.filter((task) => task.status === "Blocked")
-  const reviewTasks = myTasks.filter((task) => task.status === "In review")
+  const blockedTasks = visibleTasks.filter((task) => task.status === "Blocked")
+  const reviewTasks = visibleTasks.filter((task) => task.status === "In review")
 
   const stats = [
-    myOpenTasks.length,
+    openTasks.length,
     overdueTasks.length,
     blockedTasks.length,
     reviewTasks.length,
   ]
 
-  const upcoming = myOpenTasks
+  const upcoming = openTasks
     .filter((task) => task.due && task.due >= today)
     .sort((a, b) => a.due.localeCompare(b.due))
     .slice(0, 2)
 
   async function toggleTask(task: Task) {
-    if (!workspaceId) return
+    if (!workspaceId || !workspaceActive) return
     const status = task.status === "Done" ? "todo" : "done"
     try {
       const result = await api.updateTaskStatus(workspaceId, task.id, status)
@@ -249,6 +266,128 @@ export function DashboardPage() {
         caught instanceof ApiError
           ? caught.message
           : "Unable to update task status.",
+      )
+    }
+  }
+
+  async function cancelProject(project: WorkspaceProject) {
+    if (!workspaceId || !window.confirm(`Cancel project "${project.title}"?`))
+      return
+    setError("")
+    try {
+      const result = await api.updateWorkspaceProjectStatus(
+        workspaceId,
+        project.id,
+        "cancelled",
+      )
+      setWorkspaceProjects((current) =>
+        current.map((item) => (item.id === project.id ? result.data : item)),
+      )
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError
+          ? caught.message
+          : "Unable to cancel the project.",
+      )
+    }
+  }
+
+  async function restoreProject(project: WorkspaceProject) {
+    if (!workspaceId) return
+    setError("")
+    try {
+      const result = await api.updateWorkspaceProjectStatus(
+        workspaceId,
+        project.id,
+        "active",
+      )
+      setWorkspaceProjects((current) =>
+        current.map((item) => (item.id === project.id ? result.data : item)),
+      )
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError
+          ? caught.message
+          : "Unable to restore the project.",
+      )
+    }
+  }
+
+  async function cancelTask(task: WorkspaceTask) {
+    if (!workspaceId || !window.confirm(`Cancel task "${task.title}"?`)) return
+    setError("")
+    try {
+      const result = await api.updateTaskStatus(
+        workspaceId,
+        task.id,
+        "cancelled",
+      )
+      setWorkspaceTasks((current) =>
+        current.map((item) => (item.id === task.id ? result.data : item)),
+      )
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError
+          ? caught.message
+          : "Unable to cancel the task.",
+      )
+    }
+  }
+
+  async function restoreTask(task: WorkspaceTask) {
+    if (!workspaceId) return
+    setError("")
+    try {
+      const result = await api.updateTaskStatus(
+        workspaceId,
+        task.id,
+        "todo",
+      )
+      setWorkspaceTasks((current) =>
+        current.map((item) => (item.id === task.id ? result.data : item)),
+      )
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError
+          ? caught.message
+          : "Unable to restore the task.",
+      )
+    }
+  }
+
+  async function setWorkspaceStatus(isActive: boolean) {
+    if (!workspaceId) return
+    if (
+      !isActive &&
+      window.prompt(
+        `Type "${session?.activeWorkspace?.name}" to deactivate this workspace. Its data will be retained and all changes will be locked until reactivated.`,
+      ) !== session?.activeWorkspace?.name
+    ) {
+      return
+    }
+    setError("")
+    try {
+      const result = await api.setWorkspaceActive(workspaceId, isActive)
+      const current = getSession()
+      if (current) {
+        const updatedWorkspace = {
+          ...result.data,
+          role: "owner",
+        }
+        saveSession({
+          ...current,
+          workspaces: current.workspaces.map((item) =>
+            item.id === workspaceId ? updatedWorkspace : item,
+          ),
+          activeWorkspace: updatedWorkspace,
+        })
+      }
+      setWorkspaceActive(isActive)
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError
+          ? caught.message
+          : "Unable to update the workspace status.",
       )
     }
   }
@@ -269,10 +408,12 @@ export function DashboardPage() {
           <h1>Good morning, {session?.user.name.split(" ")[0] ?? "there"}</h1>
           <p>Here’s what’s happening across your workspace today.</p>
         </div>
-        <Link className="secondary-button" to="/calendar">
-          <Calendar size={17} />
-          This week
-        </Link>
+        {!isOwner && (
+          <Link className="secondary-button" to="/calendar">
+            <Calendar size={17} />
+            This week
+          </Link>
+        )}
       </div>
 
       {error && (
@@ -281,6 +422,112 @@ export function DashboardPage() {
         </div>
       )}
       {loading && <p className="empty-copy">Loading workspace overview…</p>}
+      {isOwner && (
+        <SectionCard
+          title="Owner controls"
+          className="activity-card"
+          action={
+            <span className="status status-gray">
+              {workspaceActive ? "Workspace active" : "Workspace deactivated"}
+            </span>
+          }
+        >
+          {!workspaceActive ? (
+            <div className="empty-state">
+              <p>
+                This workspace is read-only. Its data is retained until you
+                reactivate it.
+              </p>
+              <button
+                className="primary-button"
+                onClick={() => void setWorkspaceStatus(true)}
+                type="button"
+              >
+                Reactivate workspace
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="team-task-list">
+                <h3>Projects</h3>
+                {workspaceProjects.length ? (
+                  workspaceProjects.map((project) => (
+                    <div className="placeholder-row" key={project.id}>
+                      <span>
+                        <strong>{project.title}</strong>
+                        <small>
+                          {project.key} · {project.status.replace(/_/g, " ")}
+                        </small>
+                      </span>
+                      {project.status === "cancelled" ? (
+                        <button
+                          className="secondary-button"
+                          onClick={() => void restoreProject(project)}
+                          type="button"
+                        >
+                          Restore project
+                        </button>
+                      ) : project.status !== "completed" ? (
+                          <button
+                            className="secondary-button"
+                            onClick={() => void cancelProject(project)}
+                            type="button"
+                          >
+                            Cancel project
+                          </button>
+                        ) : null}
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-copy">No projects in this workspace.</p>
+                )}
+              </div>
+              <div className="team-task-list">
+                <h3>Tasks</h3>
+                {workspaceTasks.length ? (
+                  workspaceTasks.map((task) => (
+                    <div className="placeholder-row" key={task.id}>
+                      <span>
+                        <strong>{task.title}</strong>
+                        <small>
+                          {task.number} · {task.owner.name} ·{" "}
+                          {task.status.replace(/_/g, " ")}
+                        </small>
+                      </span>
+                      {task.status === "cancelled" ? (
+                        <button
+                          className="secondary-button"
+                          onClick={() => void restoreTask(task)}
+                          type="button"
+                        >
+                          Restore task
+                        </button>
+                      ) : task.status !== "done" ? (
+                          <button
+                            className="secondary-button"
+                            onClick={() => void cancelTask(task)}
+                            type="button"
+                          >
+                            Cancel task
+                          </button>
+                        ) : null}
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-copy">No tasks in this workspace.</p>
+                )}
+              </div>
+              <button
+                className="secondary-button"
+                onClick={() => void setWorkspaceStatus(false)}
+                type="button"
+              >
+                Deactivate workspace
+              </button>
+            </>
+          )}
+        </SectionCard>
+      )}
       {!isAdmin && (
         <div className="stat-grid">
           {statDefinitions.map((stat, index) => (
@@ -293,7 +540,11 @@ export function DashboardPage() {
                 <stat.icon size={19} />
               </div>
               <div>
-                <p>{stat.label}</p>
+                <p>
+                  {index === 0 && isProjectManager
+                    ? "Workspace open tasks"
+                    : stat.label}
+                </p>
                 <strong>{stats[index]}</strong>
                 <small>{stat.detail}</small>
               </div>
@@ -306,7 +557,7 @@ export function DashboardPage() {
       <div className="dashboard-grid">
         {!isAdmin && (
           <SectionCard
-            title="My work"
+            title={isProjectManager ? "Workspace tasks" : "My work"}
             className="my-work"
             action={
               <Link to="/tasks">
@@ -315,7 +566,7 @@ export function DashboardPage() {
             }
           >
             <div className="task-list">
-              {myTasks.slice(0, 4).map((task) => (
+              {visibleTasks.slice(0, 4).map((task) => (
                 <div className="task-row" key={task.id}>
                   <button
                     aria-label={
@@ -327,6 +578,9 @@ export function DashboardPage() {
                       task.status === "Done" ? "is-done" : ""
                     }`}
                     onClick={() => void toggleTask(task)}
+                    disabled={
+                      !workspaceActive || task.status === "Cancelled"
+                    }
                     type="button"
                   >
                     <Check size={14} />
@@ -361,11 +615,17 @@ export function DashboardPage() {
                   </Link>
                 </div>
               ))}
-              {!myTasks.length && (
+              {!visibleTasks.length && (
                 <div className="empty-state">
                   <CheckCircle2 size={30} />
-                  <h3>You’re all caught up</h3>
-                  <p>Tasks assigned to you will appear here.</p>
+                  <h3>
+                    {isProjectManager ? "No workspace tasks yet" : "You’re all caught up"}
+                  </h3>
+                  <p>
+                    {isProjectManager
+                      ? "Tasks created for your workspace will appear here."
+                      : "Tasks assigned to you will appear here."}
+                  </p>
                 </div>
               )}
             </div>
@@ -375,11 +635,11 @@ export function DashboardPage() {
         <SectionCard
           title="Workspace updates"
           className="activity-card"
-          action={
+          action={!isOwner ? (
             <Link className="text-button" to="/inbox">
               View all
             </Link>
-          }
+          ) : undefined}
         >
           <div className="empty-state">
             <CheckCircle2 size={28} />
@@ -391,11 +651,11 @@ export function DashboardPage() {
         <SectionCard
           title="Project momentum"
           className="project-momentum"
-          action={
+          action={!isOwner ? (
             <Link to="/projects">
               All projects <ArrowRight size={14} />
             </Link>
-          }
+          ) : undefined}
         >
           <div className="project-list">
             {workspaceProjects.slice(0, 3).map((project) => {
@@ -409,12 +669,8 @@ export function DashboardPage() {
                 ? Math.round((completedCount / projectTasks.length) * 100)
                 : 0
 
-              return (
-                <Link
-                  className="project-row"
-                  key={project.id}
-                  to={`/projects?search=${encodeURIComponent(project.title)}`}
-                >
+              const projectContent = (
+                <>
                   <span className="project-tile bg-indigo-500">
                     {project.key.slice(0, 2)}
                   </span>
@@ -429,6 +685,19 @@ export function DashboardPage() {
                     <strong>{progress}%</strong>
                     <span>{projectTasks.length} tasks</span>
                   </div>
+                </>
+              )
+              return isOwner ? (
+                <div className="project-row" key={project.id}>
+                  {projectContent}
+                </div>
+              ) : (
+                <Link
+                  className="project-row"
+                  key={project.id}
+                  to={`/projects?search=${encodeURIComponent(project.title)}`}
+                >
+                  {projectContent}
                 </Link>
               )
             })}
@@ -464,9 +733,11 @@ export function DashboardPage() {
             {!upcoming.length && (
               <p className="empty-copy">No upcoming deadlines.</p>
             )}
-            <Link className="calendar-link" to="/calendar">
-              Open calendar <ArrowRight size={14} />
-            </Link>
+            {!isOwner && (
+              <Link className="calendar-link" to="/calendar">
+                Open calendar <ArrowRight size={14} />
+              </Link>
+            )}
           </SectionCard>
         )}
       </div>
@@ -481,6 +752,9 @@ export function TasksPage() {
 
   const session = getSession()
   const workspaceId = session?.activeWorkspace?.id
+  const workspaceActive = session?.activeWorkspace?.isActive !== false
+  const isProjectManager =
+    session?.activeWorkspace?.role === "project_manager"
   const [workspaceTasks, setWorkspaceTasks] = useState<WorkspaceTask[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -494,7 +768,9 @@ export function TasksPage() {
   const [view, setView] = useState<"list" | "board">("list")
 
   const tasks = workspaceTasks
-    .filter((task) => task.owner.id === session?.user.id)
+    .filter(
+      (task) => isProjectManager || task.owner.id === session?.user.id,
+    )
     .map(taskForDisplay)
   const selectedTask = tasks.find((task) => task.id === taskId)
 
@@ -535,7 +811,7 @@ export function TasksPage() {
   }, [workspaceId])
 
   async function changeTaskStatus(task: Task, nextStatus: TaskStatus) {
-    if (!workspaceId) return
+    if (!workspaceId || !workspaceActive) return
     const status = {
       Backlog: "backlog",
       "To do": "todo",
@@ -543,6 +819,7 @@ export function TasksPage() {
       "In review": "in_review",
       Blocked: "blocked",
       Done: "done",
+      Cancelled: "cancelled",
     }[nextStatus] as WorkspaceTask["status"]
 
     try {
@@ -579,7 +856,12 @@ export function TasksPage() {
 
   if (taskId) {
     return selectedTask ? (
-      <TaskDetail task={selectedTask} onStatusChange={changeTaskStatus} />
+      <TaskDetail
+        task={selectedTask}
+        onStatusChange={changeTaskStatus}
+        workspaceActive={workspaceActive}
+        taskListLabel={isProjectManager ? "Tasks" : "My tasks"}
+      />
     ) : (
       <div className="page">
         <div className="empty-state">
@@ -601,10 +883,15 @@ export function TasksPage() {
       <div className="page-heading">
         <div>
           <p className="breadcrumbs">
-            Workspace <ChevronRight size={13} /> My tasks
+            Workspace <ChevronRight size={13} />{" "}
+            {isProjectManager ? "Tasks" : "My tasks"}
           </p>
-          <h1>My tasks</h1>
-          <p>Prioritize and track the work assigned to you.</p>
+          <h1>{isProjectManager ? "Tasks" : "My tasks"}</h1>
+          <p>
+            {isProjectManager
+              ? "View and update tasks across your workspace."
+              : "Prioritize and track the work assigned to you."}
+          </p>
         </div>
       </div>
       <div className="toolbar">
@@ -688,6 +975,7 @@ export function TasksPage() {
                         task.status === "Done" ? "To do" : "Done",
                       )
                     }
+                    disabled={!workspaceActive}
                     type="button"
                   >
                     <Check size={14} />
@@ -722,12 +1010,11 @@ export function TasksPage() {
                   />
                   {task.owner.name}
                 </span>
-                <Link
-                  aria-label={`View ${task.title}`}
-                  to={`/tasks/${task.id}`}
-                >
-                  <MoreHorizontal size={17} />
-                </Link>
+                <TaskActionsMenu
+                  onStatusChange={changeTaskStatus}
+                  task={task}
+                  workspaceActive={workspaceActive}
+                />
               </div>
             ))
           ) : (
@@ -745,12 +1032,91 @@ export function TasksPage() {
   )
 }
 
-function TaskDetail({
+function TaskActionsMenu({
   task,
+  workspaceActive,
   onStatusChange,
 }: {
   task: Task
+  workspaceActive: boolean
   onStatusChange: (task: Task, status: TaskStatus) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false)
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown)
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [open])
+
+  const isComplete = task.status === "Done"
+  const nextStatus: TaskStatus = isComplete ? "To do" : "Done"
+
+  return (
+    <div className="task-actions-menu" ref={menuRef}>
+      <button
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={`Actions for ${task.title}`}
+        className="task-actions-trigger"
+        onClick={() => setOpen((current) => !current)}
+        type="button"
+      >
+        <MoreHorizontal size={17} />
+      </button>
+      {open && (
+        <div className="task-actions-popover" role="menu">
+          <Link
+            onClick={() => setOpen(false)}
+            role="menuitem"
+            to={`/tasks/${task.id}`}
+          >
+            View task details
+          </Link>
+          <button
+            disabled={
+              !workspaceActive ||
+              task.status === "Cancelled"
+            }
+            onClick={() => {
+              void onStatusChange(task, nextStatus)
+              setOpen(false)
+            }}
+            role="menuitem"
+            type="button"
+          >
+            {isComplete ? "Reopen task" : "Mark complete"}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TaskDetail({
+  task,
+  onStatusChange,
+  workspaceActive,
+  taskListLabel,
+}: {
+  task: Task
+  onStatusChange: (task: Task, status: TaskStatus) => void
+  workspaceActive: boolean
+  taskListLabel: string
 }) {
   const navigate = useNavigate()
 
@@ -759,7 +1125,8 @@ function TaskDetail({
       <div className="page-heading">
         <div>
           <p className="breadcrumbs">
-            <Link to="/tasks">My tasks</Link> <ChevronRight size={13} />{" "}
+            <Link to="/tasks">{taskListLabel}</Link>{" "}
+            <ChevronRight size={13} />{" "}
             {task.key}
           </p>
           <h1>{task.title}</h1>
@@ -780,14 +1147,22 @@ function TaskDetail({
           <span>Status</span>
           <div>
             <select
+              disabled={!workspaceActive || task.status === "Cancelled"}
               onChange={(event) =>
                 onStatusChange(task, event.target.value as TaskStatus)
               }
               value={task.status}
             >
-              {taskStatuses.map((status) => (
-                <option key={status}>{status}</option>
-              ))}
+              {taskStatuses
+                .filter(
+                  (status) =>
+                    status !== "Cancelled" || task.status === "Cancelled",
+                )
+                .map((status) => (
+                  <option disabled={status === "Cancelled"} key={status}>
+                    {status}
+                  </option>
+                ))}
             </select>
           </div>
         </label>
@@ -866,9 +1241,10 @@ export function ProjectsPage() {
   const workspaceId = session?.activeWorkspace?.id
   const canManageProjects = ["project_manager", "owner"].includes(
     session?.activeWorkspace?.role ?? "",
-  )
+  ) && session?.activeWorkspace?.isActive !== false
   const canCreateTasks =
-    session?.activeWorkspace?.role === "project_manager"
+    session?.activeWorkspace?.role === "project_manager" &&
+    session?.activeWorkspace?.isActive !== false
   const [projects, setProjects] = useState<WorkspaceProject[]>([])
   const [tasks, setTasks] = useState<WorkspaceTask[]>([])
   const [developers, setDevelopers] = useState<Developer[]>([])
@@ -1354,7 +1730,7 @@ export function ProjectsPage() {
                 </div>
                 {fieldErrors.title && <small>{fieldErrors.title[0]}</small>}
               </label>
-              <label className="form-field">
+              <label className="form-field task-description-field">
                 <span>
                   Description <em>Optional</em>
                 </span>
@@ -1492,7 +1868,6 @@ function ProjectCard({
     "active",
     "on_hold",
     "completed",
-    "cancelled",
   ]
   const statusLabels: Record<WorkspaceProject["status"], string> = {
     planning: "Planning",
@@ -1563,8 +1938,15 @@ function ProjectCard({
             }
             value={project.status}
           >
-            {statuses.map((status) => (
-              <option key={status} value={status}>
+            {[
+              ...statuses,
+              ...(project.status === "cancelled" ? ["cancelled" as const] : []),
+            ].map((status) => (
+              <option
+                disabled={status === "cancelled"}
+                key={status}
+                value={status}
+              >
                 {statusLabels[status]}
               </option>
             ))}
