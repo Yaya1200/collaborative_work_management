@@ -66,7 +66,7 @@
   .main-shell { @apply min-h-screen lg:pl-64; }
   .topbar { @apply sticky top-0 z-30 flex h-16 items-center border-b border-[#e4e7ec] bg-white/95 px-4 backdrop-blur lg:px-7; }
   .mobile-menu { @apply mr-2 lg:hidden; }
-  .global-search { @apply flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-transparent bg-[#f4f5f7] px-3 text-slate-400 focus-within:border-[#bbb7f2] focus-within:bg-white; }
+  .global-search { @apply flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-slate-300 bg-transparent px-3 text-slate-400; }
   .global-search-wrap { @apply relative w-full max-w-md; }
   .global-search-wrap .global-search { @apply max-w-none; }
   .global-search-trigger { @apply grid shrink-0 place-items-center text-slate-400 hover:text-slate-700; }
@@ -172,17 +172,21 @@
   .deadline-item small { @apply mt-1 text-[9px] text-slate-400; }
   .calendar-link { @apply flex w-full items-center justify-center gap-1.5 py-3 text-[10px] font-semibold text-[#675ce5] hover:bg-slate-50; }
   .toolbar { @apply mb-4 flex flex-col justify-between gap-3 sm:flex-row; }
-  .search-field { @apply flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-slate-400 sm:w-64; }
+  .search-field { @apply flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border border-slate-300 bg-transparent px-3 text-slate-400 sm:w-64; }
   .search-field input { @apply min-w-0 flex-1 bg-transparent text-xs text-slate-700 placeholder:text-slate-400; }
   .filter-group { @apply flex flex-wrap items-center gap-2; }
   .filter-button, .view-button, .filter-group select { @apply flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-medium text-slate-600 hover:bg-slate-50; }
   .view-button.active { @apply border-[#d5d2fa] bg-indigo-50 text-[#675ce5]; }
   .page-search { @apply relative; }
   .page-search > input { @apply absolute inset-0 z-10 bg-transparent pl-10 text-xs opacity-0; }
-  .task-table-header, .task-table-row { @apply grid grid-cols-[minmax(260px,1.8fr)_100px_85px_100px_150px_24px] items-center gap-4 px-5; }
+  .task-table-header, .task-table-row { @apply grid grid-cols-[minmax(260px,1.8fr)_100px_85px_100px_150px_40px] items-center gap-4 px-5; }
   .task-table-header { @apply h-10 bg-slate-50 text-[9px] font-semibold uppercase tracking-wider text-slate-400; }
   .task-table-row { @apply min-h-16 border-t border-slate-100 text-[10px] text-slate-500 hover:bg-slate-50; }
   .task-table-row > a { @apply text-slate-400 hover:text-[#675ce5]; }
+  .task-actions-menu { @apply relative justify-self-end; }
+  .task-actions-trigger { @apply grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700; }
+  .task-actions-popover { @apply absolute right-0 top-full z-30 mt-1 min-w-40 overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-xl; }
+  .task-actions-popover > a, .task-actions-popover > button { @apply flex w-full items-center rounded-md px-3 py-2 text-left text-[10px] text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50; }
   .table-task { @apply flex items-center gap-3; }
   .table-task > i { @apply size-4 rounded-full border border-slate-300; }
   .table-task strong, .table-task small { @apply block; }
@@ -289,13 +293,17 @@
   .form-field > span { @apply mb-1.5 flex items-center justify-between text-[10px] font-semibold text-slate-700; }
   .form-field > span button { @apply text-[9px] font-medium text-[#675ce5]; }
   .form-field > span em { @apply font-normal not-italic text-slate-400; }
-  .form-field > div { @apply flex h-11 items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 text-slate-400 shadow-sm focus-within:border-[#9b94ef] focus-within:ring-3 focus-within:ring-indigo-100; }
+  .form-field > div { @apply flex h-11 items-center gap-2.5 rounded-lg border border-slate-300 bg-transparent px-3 text-slate-400; }
   .form-field input { @apply min-w-0 flex-1 bg-transparent text-xs text-slate-800 placeholder:text-slate-400; }
   .form-field > div select { @apply min-w-0 flex-1 bg-transparent text-xs text-slate-800 disabled:cursor-not-allowed disabled:text-slate-500; }
+  .task-description-field > div { @apply h-auto min-h-20 items-stretch p-0; }
+  .task-description-field textarea { @apply min-h-20 border-0 shadow-none outline-none; }
+  .team-page .form-field > div { @apply bg-[#f6f7f9] focus-within:border-slate-200 focus-within:ring-0; }
+  .team-page .form-field input:focus-visible, .team-page .form-field select:focus-visible { @apply outline-none; }
   .form-field > div > button { @apply shrink-0 text-[10px] font-semibold text-[#675ce5] hover:text-[#584dd7] disabled:cursor-wait disabled:text-slate-400; }
   .form-field > div > button[aria-label] { @apply text-slate-400 hover:text-slate-700; }
   .form-field > small { @apply mt-1.5 block text-[9px] text-red-600; }
-  .form-field textarea { @apply w-full resize-none rounded-lg border border-slate-200 px-3 py-2.5 text-xs text-slate-800 shadow-sm placeholder:text-slate-400 focus:border-[#9b94ef] focus:ring-3 focus:ring-indigo-100; }
+  .form-field textarea { @apply w-full resize-none rounded-lg border border-slate-300 bg-transparent px-3 py-2.5 text-xs text-slate-800 placeholder:text-slate-400; }
   .auth-submit { @apply mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#675ce5] text-xs font-semibold text-white shadow-[0_6px_18px_rgba(103,92,229,.25)] hover:bg-[#584dd7] disabled:cursor-not-allowed disabled:opacity-60; }
   .auth-note { @apply mt-5 text-center text-[10px] leading-relaxed text-slate-400; }
   .auth-switch { @apply mt-3 text-center text-[10px] text-slate-500; }
@@ -343,13 +351,20 @@
   .onboarding-assurances { @apply mt-6 flex flex-wrap justify-center gap-3 border-t border-slate-100 pt-5; }
   .onboarding-assurances span { @apply flex items-center gap-1 text-[9px] text-slate-400; }
   .onboarding-assurances svg { @apply text-emerald-500; }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+  textarea { background-color: transparent; border-color: transparent; box-shadow: none; }
+  input:focus,
+  textarea:focus { outline: none; box-shadow: none; }
+  .form-field > div:focus-within,
+  .global-search:focus-within { border-color: #cbd5e1; background-color: transparent; box-shadow: none; }
+  .form-field textarea:focus { border-color: #cbd5e1; box-shadow: none; }
 }
 
 @keyframes pageIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 1023px) {
-  .sidebar { transform: translateX(-100%); }
+  .sidebar { width: 100vw; transform: translateX(-100%); }
   .sidebar.is-open { transform: translateX(0); }
   .task-table-card { overflow-x: auto; }
   .task-table-header, .task-table-row { min-width: 900px; }
@@ -359,7 +374,7 @@
   .global-search-wrap { max-width: 44px; }
   .global-search-wrap:focus-within { @apply fixed left-3 right-3 top-3 z-50 max-w-none; }
   .global-search { max-width: 44px; background: transparent; }
-  .global-search-wrap:focus-within .global-search { @apply max-w-none bg-white shadow-lg; }
+  .global-search-wrap:focus-within .global-search { @apply max-w-none border-slate-300 bg-transparent shadow-none; }
   .global-search input, .global-search kbd { display: none; }
   .global-search-wrap:focus-within .global-search input { display: block; }
   .global-search-wrap:focus-within .global-search kbd { display: none; }
