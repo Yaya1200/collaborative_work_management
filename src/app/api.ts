@@ -1,4 +1,3 @@
-
 export type WorkspaceSummary = {
   id: string
   name: string
@@ -7,12 +6,65 @@ export type WorkspaceSummary = {
   role: string
 }
 
+export type WorkspaceRole = "owner" | "project_manager" | "team_leader" | "member" | "tester"
+
+export type WorkspaceInvitationDetails = {
+  email: string
+  role: WorkspaceRole
+  workspace: { id: string; name: string }
+}
+
 export type Session = {
   token: string
   user: { id: string; name: string; email: string }
   workspaces: WorkspaceSummary[]
   activeWorkspace?: WorkspaceSummary
-  demo?: boolean
+}
+
+export type Developer = {
+  id: string
+  name: string
+  email: string
+}
+
+export type WorkspaceMember = Developer & {
+  role: WorkspaceRole
+}
+
+export type WorkspaceTask = {
+  id: string
+  number: string
+  title: string
+  description: string | null
+  status: "backlog" | "todo" | "in_progress" | "in_review" | "done" | "blocked"
+  priority: "low" | "medium" | "high" | "critical"
+  startDate: string | null
+  dueDate: string | null
+  progressPct: number
+  project: {
+    id: string
+    key: string
+    title: string
+    space?: { id: string; name: string }
+  }
+  owner: Developer
+}
+
+export type WorkspaceProject = {
+  id: string
+  key: string
+  title: string
+  description: string | null
+  status: "planning" | "active" | "on_hold" | "completed" | "cancelled"
+  startDate: string | null
+  targetDate: string | null
+  space: { id: string; name: string }
+}
+
+export type WorkspaceSpace = {
+  id: string
+  name: string
+  description: string | null
 }
 
 type ApiErrorShape = {
@@ -45,6 +97,7 @@ function isValidSession(value: unknown): value is Session {
 
   return (
     typeof session.token === "string" &&
+    session.token !== "demo" &&
     !!session.user &&
     typeof session.user.id === "string" &&
     typeof session.user.name === "string" &&
@@ -79,31 +132,7 @@ export function clearSession() {
   localStorage.removeItem(sessionKey)
 }
 
-export function createDemoSession(): Session {
-  const workspace: WorkspaceSummary = {
-    id: "demo",
-    name: "Northstar Labs",
-    slug: "northstar-labs",
-    role: "owner",
-  }
-
-  return {
-    token: "demo",
-    user: {
-      id: "demo-user",
-      name: "Alex Morgan",
-      email: "alex@northstar.test",
-    },
-    workspaces: [workspace],
-    activeWorkspace: workspace,
-    demo: true,
-  }
-}
-
-async function request<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const session = getSession()
 
   let response: Response
@@ -113,9 +142,7 @@ async function request<T>(
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...(session && !session.demo
-          ? { Authorization: `Bearer ${session.token}` }
-          : {}),
+        ...(session ? { Authorization: `Bearer ${session.token}` } : {}),
         ...options.headers,
       },
     })
@@ -125,7 +152,7 @@ async function request<T>(
     )
   }
 
-  let body: (ApiErrorShape & T) | null = null
+  let body: ApiErrorShape & T | null = null
 
   try {
     body = await response.json()
@@ -150,19 +177,60 @@ async function request<T>(
   return body as T
 }
 
+async function listAll<T>(path: string) {
+  const data: T[] = []
+  let page = 1
+  let total = Number.POSITIVE_INFINITY
+
+  while (data.length < total) {
+    const result = await request<{
+      data: T[]
+      meta: { total: number }
+    }>(`${path}${path.includes("?") ? "&" : "?"}page=${page}&per_page=100`)
+    data.push(...result.data)
+    total = result.meta.total
+    page += 1
+  }
+
+  return { data }
+}
+
 export const api = {
+  login: (input: { email: string; password: string }) =>
+    request<{ data: Session }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  getInvitation: (token: string) =>
+    request<{ data: WorkspaceInvitationDetails }>(
+      `/auth/invitations/${encodeURIComponent(token)}`,
+    ),
+
   register: (input: {
     name: string
     email: string
     password: string
+    invitationToken: string
   }) =>
     request<{ data: Session }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(input),
     }),
 
-  login: (input: { email: string; password: string }) =>
-    request<{ data: Session }>("/auth/login", {
+  createWorkspaceInvitation: (
+    workspaceId: string,
+    input: { email: string; role: WorkspaceRole },
+  ) =>
+    request<{
+      data: {
+        id: string
+        email: string
+        role: WorkspaceRole
+        expiresAt: string
+        invitationPath: string
+      }
+    }>(`/workspaces/${encodeURIComponent(workspaceId)}/invitations`, {
       method: "POST",
       body: JSON.stringify(input),
     }),
@@ -176,4 +244,109 @@ export const api = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+
+  listDevelopers: (workspaceId: string) =>
+    request<{ data: Developer[] }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/developers`,
+    ),
+
+  listWorkspaceMembers: (workspaceId: string) =>
+    request<{ data: WorkspaceMember[] }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/members`,
+    ),
+
+  createDeveloper: (
+    workspaceId: string,
+    input: { name: string; email: string },
+  ) =>
+    request<{
+      data: {
+        developer: Developer
+        generatedPassword: string
+        loginPath: string
+      }
+    }>(`/workspaces/${encodeURIComponent(workspaceId)}/developers`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  listWorkspaceTasks: (workspaceId: string) =>
+    listAll<WorkspaceTask>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/tasks`,
+    ),
+
+  listWorkspaceProjects: (workspaceId: string) =>
+    listAll<WorkspaceProject>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/projects`,
+    ),
+
+  listWorkspaceSpaces: (workspaceId: string) =>
+    request<{ data: WorkspaceSpace[] }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/spaces`,
+    ),
+
+  createWorkspaceProject: (
+    workspaceId: string,
+    input: {
+      name: string
+      space: string
+      description?: string
+      startDate?: string
+      targetDate?: string
+    },
+  ) =>
+    request<{ data: WorkspaceProject }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/projects`,
+      { method: "POST", body: JSON.stringify(input) },
+    ),
+
+  updateWorkspaceProjectStatus: (
+    workspaceId: string,
+    projectId: string,
+    status: WorkspaceProject["status"],
+  ) =>
+    request<{ data: WorkspaceProject }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/projects/${encodeURIComponent(projectId)}/status`,
+      { method: "PATCH", body: JSON.stringify({ status }) },
+    ),
+
+  deleteWorkspaceProject: (workspaceId: string, projectId: string) =>
+    request<{ data: { id: string } }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/projects/${encodeURIComponent(projectId)}`,
+      { method: "DELETE" },
+    ),
+
+  createAssignedTask: (
+    workspaceId: string,
+    input: {
+      title: string
+      description: string
+      projectId: string
+      developerId: string
+      priority: WorkspaceTask["priority"]
+      status: WorkspaceTask["status"]
+      startDate: string
+      dueDate: string
+    },
+  ) =>
+    request<{ data: WorkspaceTask }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/tasks`,
+      { method: "POST", body: JSON.stringify(input) },
+    ),
+
+  updateTaskStatus: (
+    workspaceId: string,
+    taskId: string,
+    status: WorkspaceTask["status"],
+  ) =>
+    request<{ data: WorkspaceTask }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/status`,
+      { method: "PATCH", body: JSON.stringify({ status }) },
+    ),
+
+  assignTask: (workspaceId: string, taskId: string, developerId: string) =>
+    request<{ data: WorkspaceTask }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/tasks/${encodeURIComponent(taskId)}/assignee`,
+      { method: "PATCH", body: JSON.stringify({ developerId }) },
+    ),
 }
