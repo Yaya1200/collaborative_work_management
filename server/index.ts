@@ -188,7 +188,8 @@ app.get("/api/v1/auth/invitations/:token", async (request, response) => {
   if (
     !invitation ||
     invitation.acceptedAt ||
-    invitation.expiresAt <= new Date()
+    invitation.expiresAt <= new Date() ||
+    !invitation.workspace.isActive
   ) {
     apiError(response, 404, "INVITATION_NOT_FOUND", "This invitation is invalid or expired.")
     return
@@ -249,7 +250,8 @@ app.post("/api/v1/auth/register", async (request, response) => {
     if (
       !invitation ||
       invitation.acceptedAt ||
-      invitation.expiresAt <= new Date()
+      invitation.expiresAt <= new Date() ||
+      !invitation.workspace.isActive
     ) {
       return {
         error: {
@@ -507,6 +509,42 @@ function requireWorkspaceAdmin(
   next()
 }
 
+function requireWorkspaceActive(
+  _request: Request,
+  response: Response,
+  next: NextFunction,
+) {
+  const membership = response.locals.membership as WorkspaceMember | undefined
+  if (!membership?.workspace.isActive) {
+    apiError(
+      response,
+      409,
+      "WORKSPACE_CANCELLED",
+      "This workspace is deactivated and is read-only.",
+    )
+    return
+  }
+  next()
+}
+
+function requireWorkspaceOwner(
+  _request: Request,
+  response: Response,
+  next: NextFunction,
+) {
+  const membership = response.locals.membership as WorkspaceMember | undefined
+  if (!membership || membership.role !== WorkspaceRole.Owner) {
+    apiError(
+      response,
+      403,
+      "FORBIDDEN",
+      "Workspace owner access is required for this action.",
+    )
+    return
+  }
+  next()
+}
+
 function requireWorkspaceProjectManager(
   _request: Request,
   response: Response,
@@ -518,12 +556,39 @@ function requireWorkspaceProjectManager(
       response,
       403,
       "FORBIDDEN",
-      "Project manager access is required to create tasks.",
+      "Project manager access is required for this action.",
     )
     return
   }
   next()
 }
+
+app.patch(
+  "/api/v1/workspaces/:workspaceId/status",
+  requireAuth,
+  requireWorkspaceMember,
+  requireWorkspaceOwner,
+  async (request, response) => {
+    if (typeof request.body.isActive !== "boolean") {
+      apiError(
+        response,
+        422,
+        "VALIDATION_FAILED",
+        "Choose whether the workspace is active.",
+        { isActive: ["Choose a valid workspace status."] },
+      )
+      return
+    }
+
+    const membership = response.locals.membership as WorkspaceMember
+    const workspace = membership.workspace as Workspace
+    workspace.isActive = request.body.isActive
+    const updated = await AppDataSource.getRepository(Workspace).save(workspace)
+    response.json({
+      data: { ...updated, role: WorkspaceRole.Owner },
+    })
+  },
+)
 
 app.get(
   "/api/v1/workspaces/:workspaceId/members",
@@ -555,7 +620,8 @@ app.post(
   "/api/v1/workspaces/:workspaceId/invitations",
   requireAuth,
   requireWorkspaceMember,
-  requireWorkspaceAdmin,
+  requireWorkspaceActive,
+  requireWorkspaceOwner,
   async (request, response) => {
     const email = String(request.body.email ?? "")
       .trim()
@@ -670,6 +736,7 @@ app.get(
   "/api/v1/workspaces/:workspaceId/developers",
   requireAuth,
   requireWorkspaceMember,
+  requireWorkspaceActive,
   requireWorkspaceAdmin,
   async (request, response) => {
     const developers = await AppDataSource.getRepository(WorkspaceMember).find({
@@ -697,7 +764,8 @@ app.post(
   "/api/v1/workspaces/:workspaceId/developers",
   requireAuth,
   requireWorkspaceMember,
-  requireWorkspaceAdmin,
+  requireWorkspaceActive,
+  requireWorkspaceOwner,
   async (request, response) => {
     const name = String(request.body.name ?? "").trim()
     const email = String(request.body.email ?? "")
@@ -817,6 +885,7 @@ app.post(
   "/api/v1/workspaces/:workspaceId/projects",
   requireAuth,
   requireWorkspaceMember,
+  requireWorkspaceActive,
   requireWorkspaceAdmin,
   async (request, response) => {
     const workspaceId = String(request.params.workspaceId)
@@ -921,6 +990,7 @@ app.patch(
   "/api/v1/workspaces/:workspaceId/projects/:projectId/status",
   requireAuth,
   requireWorkspaceMember,
+  requireWorkspaceActive,
   requireWorkspaceAdmin,
   async (request, response) => {
     const workspaceId = String(request.params.workspaceId)
@@ -936,6 +1006,19 @@ app.patch(
       )
       return
     }
+    const membership = response.locals.membership as WorkspaceMember
+    if (
+      status === ProjectStatus.Cancelled &&
+      membership.role !== WorkspaceRole.Owner
+    ) {
+      apiError(
+        response,
+        403,
+        "FORBIDDEN",
+        "Only workspace owners can cancel projects.",
+      )
+      return
+    }
 
     const repository = AppDataSource.getRepository(Project)
     const project = await repository.findOne({
@@ -944,6 +1027,18 @@ app.patch(
     })
     if (!project) {
       apiError(response, 404, "NOT_FOUND", "Project was not found.")
+      return
+    }
+    if (
+      project.status === ProjectStatus.Cancelled &&
+      membership.role !== WorkspaceRole.Owner
+    ) {
+      apiError(
+        response,
+        403,
+        "FORBIDDEN",
+        "Only workspace owners can restore cancelled projects.",
+      )
       return
     }
 
@@ -956,6 +1051,7 @@ app.delete(
   "/api/v1/workspaces/:workspaceId/projects/:projectId",
   requireAuth,
   requireWorkspaceMember,
+  requireWorkspaceActive,
   requireWorkspaceAdmin,
   async (request, response) => {
     const workspaceId = String(request.params.workspaceId)
@@ -971,6 +1067,60 @@ app.delete(
 
     await repository.remove(project)
     response.json({ data: { id: projectId } })
+  },
+)
+
+// Create a workspace space.
+app.post(
+  "/api/v1/workspaces/:workspaceId/spaces",
+  requireAuth,
+  requireWorkspaceMember,
+  requireWorkspaceActive,
+  requireWorkspaceProjectManager,
+  async (request, response) => {
+    const workspaceId = String(request.params.workspaceId)
+    const name = String(request.body.name ?? "").trim()
+    const description = String(request.body.description ?? "").trim() || null
+    const fields: Record<string, string[]> = {}
+
+    if (name.length < 2 || name.length > 140) {
+      fields.name = ["Enter a space name between 2 and 140 characters."]
+    }
+    if (description && description.length > 1000) {
+      fields.description = ["Space descriptions cannot exceed 1000 characters."]
+    }
+    if (Object.keys(fields).length) {
+      apiError(
+        response,
+        422,
+        "VALIDATION_FAILED",
+        "The request contains invalid fields.",
+        fields,
+      )
+      return
+    }
+
+    const spaceRepository = AppDataSource.getRepository(Space)
+    const existing = await spaceRepository.findOne({
+      where: { workspace: { id: workspaceId }, name },
+    })
+    if (existing) {
+      response.json({ data: existing })
+      return
+    }
+
+    const workspace = await AppDataSource.getRepository(Workspace).findOneBy({
+      id: workspaceId,
+    })
+    if (!workspace) {
+      apiError(response, 404, "NOT_FOUND", "Workspace was not found.")
+      return
+    }
+
+    const data = await spaceRepository.save(
+      spaceRepository.create({ workspace, name, description }),
+    )
+    response.status(201).json({ data })
   },
 )
 
@@ -1061,6 +1211,7 @@ app.post(
   "/api/v1/workspaces/:workspaceId/tasks",
   requireAuth,
   requireWorkspaceMember,
+  requireWorkspaceActive,
   requireWorkspaceProjectManager,
   async (request, response) => {
     const workspaceId = String(request.params.workspaceId)
@@ -1085,6 +1236,9 @@ app.post(
     }
     if (!Object.values(TaskStatus).includes(status as TaskStatus)) {
       fields.status = ["Choose a valid task status."]
+    }
+    if (status === TaskStatus.Cancelled) {
+      fields.status = ["Only workspace owners can cancel tasks."]
     }
     for (const [field, value] of [
       ["startDate", startDate],
@@ -1185,6 +1339,7 @@ app.patch(
   "/api/v1/workspaces/:workspaceId/tasks/:taskId/assignee",
   requireAuth,
   requireWorkspaceMember,
+  requireWorkspaceActive,
   requireWorkspaceAdmin,
   async (request, response) => {
     const workspaceId = String(request.params.workspaceId)
@@ -1233,6 +1388,7 @@ app.patch(
   "/api/v1/workspaces/:workspaceId/tasks/:taskId/status",
   requireAuth,
   requireWorkspaceMember,
+  requireWorkspaceActive,
   async (request, response) => {
     const membership = response.locals.membership as WorkspaceMember
     const status = request.body.status as TaskStatus
@@ -1262,6 +1418,18 @@ app.patch(
       return
     }
     if (
+      task.status === TaskStatus.Cancelled &&
+      membership.role !== WorkspaceRole.Owner
+    ) {
+      apiError(
+        response,
+        403,
+        "FORBIDDEN",
+        "Only workspace owners can restore cancelled tasks.",
+      )
+      return
+    }
+    if (
       ![
         WorkspaceRole.Owner,
         WorkspaceRole.ProjectManager,
@@ -1269,6 +1437,18 @@ app.patch(
       ].includes(membership.role)
     ) {
       apiError(response, 403, "FORBIDDEN", "You cannot update this task.")
+      return
+    }
+    if (
+      status === TaskStatus.Cancelled &&
+      membership.role !== WorkspaceRole.Owner
+    ) {
+      apiError(
+        response,
+        403,
+        "FORBIDDEN",
+        "Only workspace owners can cancel tasks.",
+      )
       return
     }
 
@@ -1333,11 +1513,17 @@ app.get(
       myTasks
         .clone()
         .andWhere("task.status != :done", { done: "done" })
+        .andWhere("task.status != :cancelled", {
+          cancelled: TaskStatus.Cancelled,
+        })
         .getCount(),
 
       myTasks
         .clone()
         .andWhere("task.status != :done", { done: "done" })
+        .andWhere("task.status != :cancelled", {
+          cancelled: TaskStatus.Cancelled,
+        })
         .andWhere("task.due_date < :today", { today })
         .getCount(),
 
@@ -1369,6 +1555,9 @@ app.get(
         .leftJoinAndSelect("task.owner", "owner")
         .andWhere("task.due_date >= :today", { today })
         .andWhere("task.status != :done", { done: "done" })
+        .andWhere("task.status != :cancelled", {
+          cancelled: TaskStatus.Cancelled,
+        })
         .orderBy("task.due_date", "ASC")
         .take(5)
         .getMany(),
@@ -1384,6 +1573,9 @@ app.get(
       myTasks
         .clone()
         .andWhere("task.status != :done", { done: "done" })
+        .andWhere("task.status != :cancelled", {
+          cancelled: TaskStatus.Cancelled,
+        })
         .orderBy("task.due_date", "ASC")
         .take(5)
         .getMany(),
