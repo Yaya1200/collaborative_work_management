@@ -8,10 +8,13 @@ import {
   Task,
   User,
   Workspace,
+  WorkspaceInvitation,
   WorkspaceMember,
 } from "./entities.js";
 
 import { InitialWorkspaceSchema1729958400000 } from "./migrations/1729958400000-InitialWorkspaceSchema.js";
+import { AddDeveloperRole1730707200000 } from "./migrations/1730707200000-AddDeveloperRole.js";
+import { AddRoleBasedInvitations1730793600000 } from "./migrations/1730793600000-AddRoleBasedInvitations.js";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -20,8 +23,20 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER ?? "workspace_pm",
   password: process.env.DB_PASSWORD ?? "",
   database: process.env.DB_NAME ?? "workspace_pm",
-  entities: [User, Workspace, WorkspaceMember, Space, Project, Task],
-  migrations: [InitialWorkspaceSchema1729958400000],
+  entities: [
+    User,
+    Workspace,
+    WorkspaceMember,
+    WorkspaceInvitation,
+    Space,
+    Project,
+    Task,
+  ],
+  migrations: [
+    InitialWorkspaceSchema1729958400000,
+    AddDeveloperRole1730707200000,
+    AddRoleBasedInvitations1730793600000,
+  ],
   synchronize: false,
   migrationsRun: true,
   logging: process.env.NODE_ENV === "development",
