@@ -8,6 +8,7 @@
     "dev": "vite",
     "server:dev": "tsx watch --tsconfig server/tsconfig.json server/index.ts",
     "db:migrate": "tsx --tsconfig server/tsconfig.json server/migrate.ts",
+    "db:seed": "tsx --tsconfig server/tsconfig.json server/seed.ts",
     "build": "vite build",
     "server:check": "tsc -p server/tsconfig.json --noEmit",
     "preview": "vite preview",
