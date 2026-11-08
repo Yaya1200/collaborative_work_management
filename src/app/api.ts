@@ -4,6 +4,7 @@ export type WorkspaceSummary = {
   slug: string
   description?: string | null
   role: string
+  isActive: boolean
 }
 
 export type WorkspaceRole = "owner" | "project_manager" | "team_leader" | "member" | "tester"
@@ -36,7 +37,14 @@ export type WorkspaceTask = {
   number: string
   title: string
   description: string | null
-  status: "backlog" | "todo" | "in_progress" | "in_review" | "done" | "blocked"
+  status:
+    | "backlog"
+    | "todo"
+    | "in_progress"
+    | "in_review"
+    | "done"
+    | "blocked"
+    | "cancelled"
   priority: "low" | "medium" | "high" | "critical"
   startDate: string | null
   dueDate: string | null
@@ -285,6 +293,15 @@ export const api = {
       `/workspaces/${encodeURIComponent(workspaceId)}/spaces`,
     ),
 
+  createWorkspaceSpace: (
+    workspaceId: string,
+    input: { name: string; description?: string },
+  ) =>
+    request<{ data: WorkspaceSpace }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/spaces`,
+      { method: "POST", body: JSON.stringify(input) },
+    ),
+
   createWorkspaceProject: (
     workspaceId: string,
     input: {
@@ -308,6 +325,12 @@ export const api = {
     request<{ data: WorkspaceProject }>(
       `/workspaces/${encodeURIComponent(workspaceId)}/projects/${encodeURIComponent(projectId)}/status`,
       { method: "PATCH", body: JSON.stringify({ status }) },
+    ),
+
+  setWorkspaceActive: (workspaceId: string, isActive: boolean) =>
+    request<{ data: WorkspaceSummary }>(
+      `/workspaces/${encodeURIComponent(workspaceId)}/status`,
+      { method: "PATCH", body: JSON.stringify({ isActive }) },
     ),
 
   deleteWorkspaceProject: (workspaceId: string, projectId: string) =>
