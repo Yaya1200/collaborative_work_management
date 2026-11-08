@@ -53,6 +53,8 @@ function statusLabel(status: WorkspaceTask["status"]) {
     blocked: "Blocked",
 
     done: "Done",
+
+    cancelled: "Cancelled",
   }[status]
 }
 
@@ -83,6 +85,7 @@ export function DeveloperPortalPage({ view }: { view: DeveloperPortalView }) {
   const session = getSession()
 
   const workspaceId = session?.activeWorkspace?.id
+  const workspaceActive = session?.activeWorkspace?.isActive !== false
 
   const [tasks, setTasks] = useState<WorkspaceTask[]>([])
 
@@ -192,7 +195,9 @@ export function DeveloperPortalPage({ view }: { view: DeveloperPortalView }) {
 
   const selectedTask = tasks.find((task) => task.id === taskId)
 
-  const openTasks = tasks.filter((task) => task.status !== "done")
+  const openTasks = tasks.filter(
+    (task) => task.status !== "done" && task.status !== "cancelled",
+  )
 
   const overdueTasks = openTasks.filter(
     (task) =>
@@ -233,9 +238,11 @@ export function DeveloperPortalPage({ view }: { view: DeveloperPortalView }) {
               : "Only tasks assigned to you and the projects and spaces connected to them."}
           </p>
         </div>
-        <Link className="secondary-button" to="/tasks">
-          My tasks <ArrowRight size={15} />
-        </Link>
+        {!taskId && (
+          <Link className="secondary-button" to="/tasks">
+            My tasks <ArrowRight size={15} />
+          </Link>
+        )}
       </div>
 
       {error && (
@@ -274,7 +281,11 @@ export function DeveloperPortalPage({ view }: { view: DeveloperPortalView }) {
               <span>Update status</span>
               <div>
                 <select
-                  disabled={busyTask === selectedTask.id}
+                  disabled={
+                    busyTask === selectedTask.id ||
+                    !workspaceActive ||
+                    selectedTask.status === "cancelled"
+                  }
                   onChange={(event) =>
                     void changeStatus(
                       selectedTask,
@@ -284,6 +295,11 @@ export function DeveloperPortalPage({ view }: { view: DeveloperPortalView }) {
                   }
                   value={selectedTask.status}
                 >
+                  {selectedTask.status === "cancelled" && (
+                    <option disabled value="cancelled">
+                      Cancelled
+                    </option>
+                  )}
                   {taskStatuses.map((status) => (
                     <option key={status} value={status}>
                       {statusLabel(status)}
@@ -292,7 +308,6 @@ export function DeveloperPortalPage({ view }: { view: DeveloperPortalView }) {
                 </select>
               </div>
             </label>
-            <Link to="/tasks">Back to my tasks</Link>
           </SectionCard>
         ) : (
           <EmptyMessage message="This task is not assigned to your account." />
@@ -333,6 +348,7 @@ export function DeveloperPortalPage({ view }: { view: DeveloperPortalView }) {
               tasks={openTasks.slice(0, 6)}
               onStatusChange={changeStatus}
               busyTask={busyTask}
+              workspaceActive={workspaceActive}
             />
           </SectionCard>
           <div className="project-grid">
@@ -368,6 +384,7 @@ export function DeveloperPortalPage({ view }: { view: DeveloperPortalView }) {
                 tasks={matchingTasks}
                 onStatusChange={changeStatus}
                 busyTask={busyTask}
+                workspaceActive={workspaceActive}
               />
             </SectionCard>
           </>
@@ -458,12 +475,14 @@ function TaskRows({
   onStatusChange,
 
   busyTask,
+  workspaceActive,
 }: {
   tasks: WorkspaceTask[]
 
   onStatusChange: (task: WorkspaceTask, status: WorkspaceTask["status"]) => void
 
   busyTask: string
+  workspaceActive: boolean
 }) {
   if (!tasks.length) {
     return <EmptyMessage message="Tasks assigned to you will appear here." />
@@ -485,7 +504,11 @@ function TaskRows({
           </span>
           <select
             aria-label={`Update status for ${task.title}`}
-            disabled={busyTask === task.id}
+            disabled={
+              busyTask === task.id ||
+              !workspaceActive ||
+              task.status === "cancelled"
+            }
             onChange={(event) =>
               onStatusChange(
                 task,
@@ -494,6 +517,11 @@ function TaskRows({
             }
             value={task.status}
           >
+            {task.status === "cancelled" && (
+              <option disabled value="cancelled">
+                Cancelled
+              </option>
+            )}
             {taskStatuses.map((status) => (
               <option key={status} value={status}>
                 {statusLabel(status)}
