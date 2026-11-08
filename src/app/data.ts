@@ -1,10 +1,4 @@
-export type TaskStatus =
-  | "Backlog"
-  | "To do"
-  | "In progress"
-  | "In review"
-  | "Done"
-  | "Blocked"
+export type TaskStatus = "Backlog" | "To do" | "In progress" | "In review" | "Done" | "Blocked"
 
 export type Task = {
   id: string
@@ -169,32 +163,5 @@ export const projects: Project[] = [
     tasks: 14,
     due: "Dec 18",
     color: "bg-emerald-500",
-  },
-]
-
-export const activity = [
-  {
-    initials: "MC",
-    text: "Maya submitted MOB-18 for review",
-    time: "12 min ago",
-    tone: "bg-amber-100 text-amber-700",
-  },
-  {
-    initials: "JL",
-    text: "Jordan raised a blocker on OPS-09",
-    time: "42 min ago",
-    tone: "bg-sky-100 text-sky-700",
-  },
-  {
-    initials: "NP",
-    text: "Nora completed WEB-17",
-    time: "1 hr ago",
-    tone: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    initials: "AM",
-    text: "Alex updated Website Redesign",
-    time: "2 hrs ago",
-    tone: "bg-violet-100 text-violet-700",
   },
 ]
